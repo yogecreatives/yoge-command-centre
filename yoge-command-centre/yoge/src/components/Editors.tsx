@@ -177,45 +177,76 @@ function FollowUpForm({ item, defaults, onClose }: { item?: FollowUp; defaults?:
 }
 
 function ProjectForm({ item, defaults, onClose }: { item?: Project; defaults?: any; onClose: () => void }) {
-  const { businesses, tasks, create, update, remove } = useData()
+  const { businesses, tasks, settings, create, update, remove, createMany } = useData()
   const open = useEditor()
   const toast = useToast()
+  const starterDefaults = [{ title: 'Collect content and requirements', offset: 0 }, { title: 'Design homepage', offset: 3 }, { title: 'Build and connect pages', offset: 7 }, { title: 'Client review', offset: 10 }, { title: 'Send invoice', offset: 14 }, { title: 'Collect balance', offset: 17 }, { title: 'Ask for review', offset: 21 }]
+  const starterTasks = settings?.starter_tasks?.length ? settings.starter_tasks : starterDefaults
+  const [makeTasks, setMakeTasks] = useState(true)
   const [f, setF] = useState({
-    name: item?.name ?? defaults?.name ?? '', client_name: item?.client_name ?? '', description: item?.description ?? defaults?.description ?? '',
-    business_id: item?.business_id ?? defaults?.business_id ?? businesses[0]?.id ?? '', start_date: item?.start_date ?? '', due_date: item?.due_date ?? '',
-    status: (item?.status ?? 'planning') as ProjectStatus, priority: (item?.priority ?? 'normal') as Priority, notes: item?.notes ?? '',
+    name: item?.name ?? defaults?.name ?? '', client_name: item?.client_name ?? '',
+    description: item?.description ?? defaults?.description ?? '',
+    business_id: item?.business_id ?? defaults?.business_id ?? businesses[0]?.id ?? '',
+    start_date: item?.start_date ?? todayISO(), due_date: item?.due_date ?? '',
+    status: (item?.status ?? 'planning') as ProjectStatus,
+    priority: (item?.priority ?? 'normal') as Priority, notes: item?.notes ?? '',
+    total_amount: String(item?.total_amount ?? ''), paid_amount: String(item?.paid_amount ?? ''),
+    referred_by: item?.referred_by ?? '', invoice_status: item?.invoice_status ?? 'not_sent',
   })
   const [err, setErr] = useState(''); const [saving, setSaving] = useState(false)
   const set = (k: string, v: any) => setF(s => ({ ...s, [k]: v }))
   const related = item ? tasks.filter(t => t.project_id === item.id) : []
+  const total = Number(f.total_amount) || 0, paid = Number(f.paid_amount) || 0
+  const balance = Math.max(0, total - paid)
   const save = async () => {
     if (!f.name.trim()) return setErr('Give the project a name.')
     if (f.start_date && f.due_date && f.due_date < f.start_date) return setErr('The due date is before the start date.')
+    if (total < 0 || paid < 0 || paid > total) return setErr('Check the total and paid amounts. Paid cannot exceed total.')
     setSaving(true)
     const row = {
       name: f.name.trim(), client_name: nz(f.client_name), description: nz(f.description), business_id: f.business_id,
       start_date: f.start_date || null, due_date: f.due_date || null, status: f.status, priority: f.priority, notes: nz(f.notes),
+      total_amount: total, paid_amount: paid, referred_by: nz(f.referred_by), invoice_status: f.invoice_status,
       completed_at: f.status === 'completed' ? (item?.completed_at ?? new Date().toISOString()) : null,
     }
     const res = item ? await update('projects', item.id, row) : await create('projects', row)
+    if (res && !item && makeTasks && starterTasks.length) {
+      const rows = starterTasks.filter(t => t.title.trim()).map(t => ({
+        business_id: f.business_id, project_id: res.id, title: t.title.trim(), task_type: 'project_task',
+        priority: 'normal', status: 'pending', due_date: addDays(todayISO(), Number(t.offset) || 0),
+      }))
+      if (rows.length) {
+        const count = await createMany('tasks', rows)
+        if (count !== rows.length) toast('Project saved, but some starter tasks could not be created.', 'error')
+      }
+    }
     setSaving(false)
     if (res) { toast(item ? 'Project saved' : 'Project added'); defaults?.afterSave?.(res); onClose() }
   }
   return (
     <Sheet title={item ? 'Edit project' : 'New project'} onClose={onClose}>
-      <F label="Project"><input className="input" autoFocus={!item} value={f.name} onChange={e => set('name', e.target.value)} /></F>
+      <F label="Project"><input className="input" autoFocus={!item} value={f.name} onChange={e => set('name', e.target.value)} placeholder="Project name" /></F>
       <div className="two">
-        <F label="Client"><input className="input" value={f.client_name} onChange={e => set('client_name', e.target.value)} /></F>
         <F label="Business"><BusinessSelect value={f.business_id} onChange={v => set('business_id', v)} /></F>
-      </div>
-      <div className="two">
-        <F label="Start date"><input className="input" type="date" value={f.start_date} onChange={e => set('start_date', e.target.value)} /></F>
-        <F label="Due date"><input className="input" type="date" value={f.due_date} onChange={e => set('due_date', e.target.value)} /></F>
+        <F label="Date"><input className="input" type="date" value={f.start_date} onChange={e => set('start_date', e.target.value)} /></F>
       </div>
       <F label="Status"><select className="input" value={f.status} onChange={e => set('status', e.target.value)}>{Object.entries(PROJECT_STATUS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></F>
-      <F label="Priority"><Segmented value={f.priority} options={Object.entries(PRIORITY) as [Priority, string][]} onChange={v => set('priority', v)} /></F>
-      <F label="Description"><textarea className="input" rows={2} value={f.description} onChange={e => set('description', e.target.value)} /></F>
-      <F label="Notes"><textarea className="input" rows={2} value={f.notes} onChange={e => set('notes', e.target.value)} /></F>
+      <div className="two">
+        <F label="Total"><input className="input" type="number" min="0" value={f.total_amount} onChange={e => set('total_amount', e.target.value)} /></F>
+        <F label="Paid"><input className="input" type="number" min="0" value={f.paid_amount} onChange={e => set('paid_amount', e.target.value)} /></F>
+      </div>
+      <F label="Balance"><input className="input" value={balance.toLocaleString()} readOnly /></F>
+      <div className="two">
+        <F label="Referred by"><input className="input" value={f.referred_by} onChange={e => set('referred_by', e.target.value)} placeholder="Referrer name" /></F>
+        <F label="Invoice"><select className="input" value={f.invoice_status} onChange={e => set('invoice_status', e.target.value)}><option value="not_sent">Not sent yet</option><option value="sent">Sent</option><option value="paid">Paid</option></select></F>
+      </div>
+      <F label="Due date"><input className="input" type="date" value={f.due_date} onChange={e => set('due_date', e.target.value)} /></F>
+      <F label="Remarks"><textarea className="input" rows={2} value={f.notes} onChange={e => set('notes', e.target.value)} placeholder="Optional" /></F>
+      {!item && <div className="group pad">
+        <label className="row switch"><div className="row-main"><div className="row-title">Create starter tasks</div><div className="row-sub">Added to Tasks with due dates</div></div><input type="checkbox" checked={makeTasks} onChange={e => setMakeTasks(e.target.checked)} /></label>
+        <p className="foot">Sample checklist. Edit this list once in Settings.</p>
+        {starterTasks.map((t, i) => <div className="row" key={i}><div className="row-main"><div className="row-title">{t.title}</div><div className="row-sub">{Number(t.offset) === 0 ? 'Today' : '+' + t.offset + ' days'}</div></div></div>)}
+      </div>}
       {item && (
         <div className="group">
           <div className="grouphead">Related tasks · {related.filter(t => t.status === 'completed').length}/{related.length} done</div>
