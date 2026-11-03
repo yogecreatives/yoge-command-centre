@@ -213,7 +213,7 @@ function ProjectForm({ item, defaults, onClose }: { item?: Project; defaults?: a
     if (res && !item && makeTasks && starterTasks.length) {
       const rows = starterTasks.filter(t => t.title.trim()).map(t => ({
         business_id: f.business_id, project_id: res.id, title: t.title.trim(), task_type: 'project_task',
-        priority: 'normal', status: 'pending', due_date: addDays(todayISO(), Number(t.offset) || 0),
+        priority: 'normal', status: 'pending', due_date: addDays(f.start_date || todayISO(), Number(t.offset) || 0),
       }))
       if (rows.length) {
         const count = await createMany('tasks', rows)
