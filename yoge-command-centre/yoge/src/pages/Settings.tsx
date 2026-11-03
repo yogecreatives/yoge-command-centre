@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useData } from '../lib/data'
 import { Icon } from '../ui/Icon'
 import { go } from '../lib/route'
@@ -16,6 +16,10 @@ export function Settings() {
   const [raw, setRaw] = useState('')
   const [importing, setImporting] = useState(false)
   const [theme, setThemeState] = useState<ThemePref>(getTheme())
+  const defaultStarterTasks = [{ title: 'Collect content and requirements', offset: 0 }, { title: 'Design homepage', offset: 3 }, { title: 'Build and connect pages', offset: 7 }, { title: 'Client review', offset: 10 }, { title: 'Send invoice', offset: 14 }, { title: 'Collect balance', offset: 17 }, { title: 'Ask for review', offset: 21 }]
+  const [starterTasks, setStarterTasks] = useState(defaultStarterTasks)
+  useEffect(() => { if (settings?.starter_tasks?.length) setStarterTasks(settings.starter_tasks) }, [settings?.starter_tasks])
+  const saveStarterTasks = async () => { await updateSettings({ starter_tasks: starterTasks }); toast('Starter task checklist saved') }
   const zones: string[] = (Intl as any).supportedValuesOf?.('timeZone') ?? ['Asia/Kuala_Lumpur', 'Asia/Kolkata', 'Asia/Singapore', 'UTC']
   const toggle = (k: keyof NonNullable<typeof settings>, label: string, sub?: string) => (
     <label className="row switch"><div className="row-main"><div className="row-title">{label}</div>{sub && <div className="row-sub">{sub}</div>}</div>
@@ -71,6 +75,15 @@ export function Settings() {
             {[...new Set([settings?.timezone ?? 'UTC', ...zones])].map(z => <option key={z}>{z}</option>)}
           </select></label>
       </div><p className="foot">Reminders are created by the database every 15 minutes and appear in Notifications on every device.</p></section>
+
+      <section className="section"><div className="section-title"><span>Project starter tasks</span></div><div className="group pad">
+        <p className="row-sub">These tasks are offered automatically when you create a new project. Set the number of days after the project date.</p>
+        {starterTasks.map((task, index) => <div className="two" key={index} style={{ padding: '8px 0' }}>
+          <input className="input" value={task.title} aria-label="Starter task title" onChange={e => setStarterTasks(list => list.map((v, i) => i === index ? { ...v, title: e.target.value } : v))} />
+          <div className="two"><input className="input" type="number" min="0" value={task.offset} aria-label="Days after project date" onChange={e => setStarterTasks(list => list.map((v, i) => i === index ? { ...v, offset: Math.max(0, Number(e.target.value) || 0) } : v))} /><button className="btn small" onClick={() => setStarterTasks(list => list.filter((_, i) => i !== index))}>Remove</button></div>
+        </div>)}
+        <div className="two"><button className="btn block" onClick={() => setStarterTasks(list => [...list, { title: '', offset: 0 }])}>Add task</button><button className="btn primary block" onClick={saveStarterTasks}>Save checklist</button></div>
+      </div></section>
 
       <section className="section"><div className="section-title"><span>Import from the V2 prototype</span></div><div className="group pad">
         <p className="row-sub">Open the old file in the browser you used, press F12, run <code>copy(localStorage.getItem('yoge_command_centre_v2'))</code> in the Console, then paste here. Nothing is deleted from the old file.</p>
