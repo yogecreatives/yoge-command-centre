@@ -1,5 +1,5 @@
 import { IdeaStatus, Priority, ProjectStatus, Status, TaskType } from './types'
-export const STATUS: Record<Status, string> = { pending: 'Pending', in_progress: 'In progress', completed: 'Completed' }
+export const STATUS: Record<Status, string> = { pending: 'Pending', in_progress: 'In progress', completed: 'Completed', dropped: 'Dropped' }
 export const PRIORITY: Record<Priority, string> = { normal: 'Normal', high: 'High', urgent: 'Urgent' }
 export const TASK_TYPE: Record<TaskType, string> = {
   general: 'General task', follow_up: 'Follow-up', client_work: 'Client work',
