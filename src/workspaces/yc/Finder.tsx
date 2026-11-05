@@ -130,6 +130,7 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
   }
 
   const review = async (p: Prospect, status: ReviewStatus) => {
+    if (status === 'approved' && p.website_classification === 'unreviewed') return
     const ok = await update('prospects', p.id, { review_status: status })
     if (ok) {
       await create('prospect_activities', {
@@ -278,13 +279,13 @@ function FinderCard({ p, today, selected, onToggle, researching, onResearch, onO
         <button className={'mini ' + (p.priority === 'high' ? 'rep' : '')} onClick={() => onPriority(p, 'high')}>High</button>
         <button className={'mini ' + (p.priority === 'medium' ? 'rep' : '')} onClick={() => onPriority(p, 'medium')}>Medium</button>
         <button className={'mini ' + (p.priority === 'low' ? 'rep' : '')} onClick={() => onPriority(p, 'low')}>Low</button>
-        {p.review_status !== 'approved' && <button className="mini rep" onClick={() => onReview(p, 'approved')}>Approve</button>}
+        {p.review_status !== 'approved' && <button className="mini rep" disabled={p.website_classification === 'unreviewed'} onClick={() => onReview(p, 'approved')}>Approve</button>}
         {p.review_status !== 'hold' && <button className="mini" onClick={() => onReview(p, 'hold')}>Hold</button>}
         {p.review_status !== 'rejected' && <button className="mini" onClick={() => onReview(p, 'rejected')}>Reject</button>}
       </div>
 
       <div className="row-sub" style={{ padding: '0 8px 8px' }}>
-        {classification === 'unreviewed' ? 'Website not classified yet' : classification === 'needs_improvement' ? 'Needs improvement' : classification === 'outdated' ? 'Outdated' : 'Good'}
+        {classification === 'unreviewed' ? 'Classify the website before approval' : classification === 'needs_improvement' ? 'Needs improvement' : classification === 'outdated' ? 'Outdated' : 'Good'}
         {p.priority ? ' · Priority ' + p.priority : ''}
         {p.next_action_date ? ' · Next action ' + fmtDate(p.next_action_date) : ''}
       </div>
