@@ -3,6 +3,7 @@ import { useEditor } from '../components/editorContext'
 import { Group } from '../components/Rows'
 import { Icon } from '../ui/Icon'
 import { go } from '../lib/route'
+import { businessRoute } from '../lib/workspaces'
 import { supabase } from '../lib/supabase'
 import { fmtStamp } from '../lib/dates'
 import { useToast } from '../ui/toast'
@@ -46,7 +47,7 @@ export function Inbox({ scope }: { scope?: string } = {}) {
 
   return (
     <>
-      <button className="backlink" onClick={() => go(scope ? `/w/${scope}/overview` : '/home')}><Icon name="back" size={18} />{scope ? 'Back' : 'Home'}</button>
+      <button className="backlink" onClick={() => go(scope ? businessRoute(scope) : '/home')}><Icon name="back" size={18} />{scope ? 'Back' : 'Home'}</button>
       <header className="large"><h1>Notifications</h1>{unread.length > 0 && <div className="toolbar"><button className="link" onClick={markAll}>Mark all read</button></div>}</header>
       <Group items={scopedNotifications.map(n => (
         <button key={n.id} className="row" onClick={() => tap(n)}>
