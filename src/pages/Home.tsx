@@ -40,6 +40,11 @@ export function Home() {
   const need = overdue + dueToday + fuDue + wlDue + ycLeadDue
   const unpaid = projects.filter(p => ids.has(p.business_id) && p.status !== 'dropped').reduce((a, p) => a + Math.max(0, Number(p.balance_amount) || 0), 0)
 
+  const salesProspects = prospects.filter(p => p.business_id === yc || p.business_id === wl)
+  const salesReview = salesProspects.filter(p => (p.review_status || 'pending') === 'pending').length
+  const salesApproved = salesProspects.filter(p => p.review_status === 'approved' && p.website_classification !== 'unreviewed').length
+  const salesDue = salesProspects.filter(p => leadDue(p, today)).length
+
   const cards: WalletCard[] = list.map(b => {
     const bt = T.filter(t => t.business_id === b.id), bf = F.filter(f => f.business_id === b.id), bp = projects.filter(p => p.business_id === b.id)
     const due = bt.filter(t => t.due_date && t.due_date <= today).length
@@ -57,6 +62,8 @@ export function Home() {
     return { id: b.slug, name: b.name, chip: `${bt.length} pending`, info: `${fu} follow-ups due · ${active} projects in progress`,
       mini: [[String(bt.length), 'Pending'], [String(bt.filter(t => t.due_date && t.due_date < today).length), 'Overdue'], [String(fu), 'Follow-ups']] }
   })
+
+  cards.push({ id: 'sales-machine', name: 'Sales Machine', chip: salesDue ? `${salesDue} due` : 'Ready', info: `${salesReview} to review · ${salesApproved} approved · one sales engine across all businesses`, hi: true })
 
   const attention = useMemo<Attention[]>(() => {
     const out: Attention[] = []
@@ -120,16 +127,7 @@ export function Home() {
       <div className="hero-n">{need}</div>
       <p className="hero-s">{need === 1 ? 'thing needs you today' : 'things need you today'}</p>
 
-      {cards.length ? <WalletStack cards={cards} onOpen={slug => go(businessRoute(slug))} /> : <div className="deck-empty">Setting up your businesses…</div>}
-
-      <div className="sectionlabel">Sales</div>
-      <button className="listcard" style={{ width: '100%', textAlign: 'left' }} onClick={() => go('/sales-machine')}>
-        <div className="row">
-          <span className="tile sm"><Icon name="send" size={17} /></span>
-          <div className="row-main"><div className="row-title">Sales Machine</div><div className="row-sub">One sales engine for Yogecreatives, Yogeworks and White Label. Select a business before working leads.</div></div>
-          <span className="chip">Open →</span>
-        </div>
-      </button>
+      {cards.length ? <WalletStack cards={cards} onOpen={slug => slug === 'sales-machine' ? go('/sales-machine') : go(businessRoute(slug))} /> : <div className="deck-empty">Setting up your businesses…</div>}
 
       <div className="sectionlabel">Needs attention</div>
       <div className="listcard">
