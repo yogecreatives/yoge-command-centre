@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useData } from '../lib/data'
 import { WalletStack, WalletCard } from '../ui/Stack'
 import { BizSwitcher } from '../ui/BizSwitcher'
@@ -132,5 +132,93 @@ export function Home() {
 
       <div className="kstats"><div><b>{overdue}</b><span>Overdue</span></div><div><b>{fuDue + wlDue + ycLeadDue + reminderCount}</b><span>Follow-ups & reminders</span></div><div><b>{Math.round(unpaid).toLocaleString()}</b><span>Unpaid</span></div></div>
     </div></div>
+  )
+}
+
+
+
+function AdminDashboard() {
+  const { businesses, teamProfiles, memberships, updateProfile, setMembership, createBusiness } = useData()
+  const toast = useToast()
+  const partners = teamProfiles.filter(p => p.role !== 'owner')
+  const [selectedId, setSelectedId] = useState(partners[0]?.user_id ?? '')
+  const selected = partners.find(p => p.user_id === selectedId) ?? null
+  const [name, setName] = useState('')
+  const [position, setPosition] = useState('')
+  const [avatar, setAvatar] = useState('')
+  const [newWorkspace, setNewWorkspace] = useState('')
+
+  useEffect(() => {
+    if (!selected) return
+    setName(selected.full_name ?? '')
+    setPosition(selected.position ?? '')
+    setAvatar(selected.avatar_url ?? '')
+  }, [selectedId, selected?.user_id])
+
+  const assigned = (businessId: string) =>
+    memberships.some(m => m.user_id === selectedId && m.business_id === businessId)
+
+  const saveProfile = async () => {
+    if (!selected) return
+    const ok = await updateProfile(selected.user_id, {
+      full_name: name.trim() || null,
+      position: position.trim() || null,
+      avatar_url: avatar.trim() || null,
+    })
+    if (ok) toast('Partner profile saved')
+  }
+
+  return (
+    <section className="section">
+      <div className="section-title"><span>Admin · Partners</span><span>Owner controls</span></div>
+      <div className="group pad">
+        {!partners.length ? (
+          <div>
+            <div className="row-title">No partner accounts yet</div>
+            <p className="row-sub" style={{whiteSpace:'normal'}}>Have your partner create an account using the normal Sign up screen first. Their account will appear here automatically.</p>
+          </div>
+        ) : (
+          <>
+            <label className="fld"><span>Partner account</span>
+              <select className="input" value={selectedId} onChange={e => setSelectedId(e.target.value)}>
+                {partners.map(p => <option key={p.user_id} value={p.user_id}>{p.full_name || p.email || p.user_id}</option>)}
+              </select>
+            </label>
+            {selected && <p className="row-sub" style={{whiteSpace:'normal'}}>Login: {selected.email || 'Email not available'}</p>}
+            <div className="two">
+              <label className="fld"><span>Name</span><input className="input" value={name} onChange={e => setName(e.target.value)} /></label>
+              <label className="fld"><span>Position</span><input className="input" value={position} onChange={e => setPosition(e.target.value)} placeholder="Sales Partner" /></label>
+            </div>
+            <label className="fld"><span>Profile image URL</span><input className="input" value={avatar} onChange={e => setAvatar(e.target.value)} placeholder="https://…" /></label>
+            <button className="btn primary block" onClick={saveProfile}>Save partner profile</button>
+
+            <div className="section-title" style={{padding:'10px 0 7px'}}><span>Workspace access</span></div>
+            <div className="group">
+              {businesses.map(b => (
+                <label key={b.id} className="row switch">
+                  <div className="row-main"><div className="row-title">{b.name}</div><div className="row-sub">Shared workspace access</div></div>
+                  <input type="checkbox" checked={assigned(b.id)} onChange={async e => {
+                    const ok = await setMembership(selectedId, b.id, e.target.checked)
+                    if (ok) toast((e.target.checked ? b.name + ' access granted' : b.name + ' access removed'))
+                  }} />
+                </label>
+              ))}
+            </div>
+            <p className="foot">The partner sees only assigned workspaces on Home. Data inside an assigned workspace is shared with you.</p>
+          </>
+        )}
+        <div className="section-title" style={{padding:'14px 0 7px'}}><span>Workspaces</span></div>
+        <div className="capture">
+          <input className="input" value={newWorkspace} onChange={e => setNewWorkspace(e.target.value)} placeholder="New workspace name" />
+          <button className="btn primary" disabled={!newWorkspace.trim()} onClick={async () => {
+            const name = newWorkspace.trim()
+            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+            const res = await createBusiness({ name, slug, description: '', symbol: '◈', sort_order: businesses.length + 1 })
+            if (res) { setNewWorkspace(''); toast(name + ' workspace created') }
+          }}>+</button>
+        </div>
+        <p className="foot">New workspaces appear on your Home immediately. Assign them to a partner above when ready.</p>
+      </div>
+    </section>
   )
 }
