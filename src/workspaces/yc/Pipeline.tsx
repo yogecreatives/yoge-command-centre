@@ -14,7 +14,15 @@ export function YcPipeline({ bizId }: { bizId: string }) {
   const { prospects: all, activities, create, createMany, update } = useData()
   const open = useEditor(); const toast = useToast(); const today = todayISO()
   const prospects = useMemo(() => all.filter(p => p.business_id === bizId), [all, bizId])
-  const [view, setView] = useState<'follow' | 'all' | 'board'>('follow')
+  const [view, setView] = useState<'find' | 'follow' | 'all' | 'board'>('find')
+  const [findLocation, setFindLocation] = useState('')
+  const [findCategory, setFindCategory] = useState('cleaning company')
+  const [findCount, setFindCount] = useState(10)
+  const [scraperUrl, setScraperUrl] = useState(() => localStorage.getItem('yoge_gmaps_scraper_url') || 'http://localhost:8080')
+  const [scrapeBusy, setScrapeBusy] = useState(false)
+  const [scrapeJobId, setScrapeJobId] = useState('')
+  const [scrapeResults, setScrapeResults] = useState<Record<string, unknown>[]>([])
+  const [selectedResults, setSelectedResults] = useState<Set<string>>(new Set())
   const [q, setQ] = useState(''); const [stage, setStage] = useState<'all' | Stage>('all'); const [sort, setSort] = useState<'follow' | 'recent' | 'name'>('follow')
   const fileRef = useRef<HTMLInputElement>(null); const drag = useRef<string | null>(null)
 
@@ -55,6 +63,78 @@ export function YcPipeline({ bizId }: { bizId: string }) {
     </button>
   )
 
+  const scrapeKey = (r: Record<string, unknown>, i: number) => String(r.place_id || r.cid || r.data_id || r.link || r.website || r.title || i)
+  const mapScrapeRow = (r: Record<string, unknown>) => ({
+    business_id: bizId,
+    agency_name: String(r.title || r.name || '').trim().slice(0, 200),
+    email: Array.isArray(r.emails) ? String(r.emails[0] || '') || null : (typeof r.emails === 'string' ? r.emails.split(',')[0]?.trim() || null : null),
+    website: r.website ? normUrl(String(r.website)) : null,
+    contact_name: null,
+    phone: r.phone ? String(r.phone) : null,
+    country: r.country ? String(r.country) : null,
+    city: r.city ? String(r.city) : (findLocation || null),
+    category: r.category ? String(r.category) : findCategory,
+    source: 'Google Maps',
+    notes: r.address ? String(r.address) : null,
+    stage: 'new',
+  })
+  const scrape = async () => {
+    const base = scraperUrl.trim().replace(/\\/$/, '')
+    if (!base || !findLocation.trim() || !findCategory.trim()) return toast('Enter a location and business category.', 'error')
+    localStorage.setItem('yoge_gmaps_scraper_url', base)
+    setScrapeBusy(true); setScrapeResults([]); setSelectedResults(new Set()); setScrapeJobId('')
+    try {
+      const query = findCategory.trim() + ' in ' + findLocation.trim()
+      const createRes = await fetch(base + '/api/v1/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'yoge-' + Date.now(), keywords: [query], lang: 'en', depth: 5, max_time: '5m', email: true }) })
+      if (!createRes.ok) throw new Error('Scraper returned ' + createRes.status)
+      const created = await createRes.json()
+      const id = String(created.id || created.job_id || created.job?.id || '')
+      if (!id) throw new Error('Scraper did not return a job id')
+      setScrapeJobId(id); toast('Search started. Waiting for Google Maps results…')
+      for (let i = 0; i < 36; i++) {
+        await new Promise(res => setTimeout(res, 5000))
+        const statusRes = await fetch(base + '/api/v1/jobs/' + encodeURIComponent(id))
+        if (!statusRes.ok) continue
+        const job = await statusRes.json()
+        const rows = Array.isArray(job.results) ? job.results : Array.isArray(job.data?.results) ? job.data.results : Array.isArray(job.job?.results) ? job.job.results : []
+        if (rows.length) {
+          const clean = rows.filter((x: unknown) => x && typeof x === 'object') as Record<string, unknown>[]
+          setScrapeResults(clean.slice(0, Math.max(findCount, 10)))
+          setSelectedResults(new Set(clean.slice(0, findCount).map(scrapeKey)))
+          setScrapeBusy(false); toast('Found ' + clean.length + ' places.')
+          return
+        }
+        const status = String(job.status || job.state || job.job?.status || '').toLowerCase()
+        if (['failed', 'error', 'cancelled', 'canceled'].includes(status)) throw new Error('Scrape job ' + status)
+      }
+      const csvRes = await fetch(base + '/api/v1/jobs/' + encodeURIComponent(id) + '/download')
+      if (csvRes.ok) {
+        const rows = parseCsv(await csvRes.text())
+        if (rows.length > 1) {
+          const head = rows[0].map(h => h.trim())
+          const jsonRows = rows.slice(1).map(row => Object.fromEntries(head.map((h, i) => [h, row[i] || ''])))
+          setScrapeResults(jsonRows.slice(0, Math.max(findCount, 10))); setSelectedResults(new Set(jsonRows.slice(0, findCount).map(scrapeKey))); toast('Results ready.')
+        } else toast('The scraper finished without results.', 'error')
+      } else toast('No results returned yet. Check the scraper at ' + base + '.', 'error')
+    } catch (e) {
+      const msg = e instanceof TypeError ? 'Could not reach the local scraper. Make sure Docker is running on http://localhost:8080 and allow browser requests if prompted.' : (e as Error).message
+      toast(msg, 'error')
+    } finally { setScrapeBusy(false) }
+  }
+  const saveScraped = async () => {
+    const chosen = scrapeResults.filter((r, i) => selectedResults.has(scrapeKey(r, i))).map(mapScrapeRow).filter(r => r.agency_name)
+    if (!chosen.length) return toast('Select at least one lead.', 'error')
+    const seen = [...prospects]; const out: Record<string, unknown>[] = []; let skipped = 0
+    for (const row of chosen) {
+      const p = row as unknown as Prospect
+      if (findDuplicate(seen, p.email, p.website) || seen.some(x => x.agency_name.toLowerCase() === p.agency_name.toLowerCase())) { skipped++; continue }
+      out.push(row); seen.push(p)
+    }
+    const count = await createMany('prospects', out)
+    toast('Saved ' + count + ' leads to this business' + (skipped ? '; skipped ' + skipped + ' duplicates.' : '.'))
+    if (count) { setScrapeResults([]); setSelectedResults(new Set()); setView('all') }
+  }
+
   const importCsv = async (file: File) => {
     const rows = parseCsv(await file.text()); if (rows.length < 2) return toast('That file has no rows.', 'error')
     const head = rows[0].map(h => h.trim().toLowerCase()); const col = (...k: string[]) => head.findIndex(h => k.some(x => h.includes(x)))
@@ -79,7 +159,36 @@ export function YcPipeline({ bizId }: { bizId: string }) {
     <>
       <div className="wshead" style={{ marginBottom: 6 }}><div><h1 className="pagetitle">Pipeline</h1><p className="pagesub">From first contact to a won project.</p></div>
         <button className="btn primary" onClick={() => open('lead')}><Icon name="plus" size={18} /> Add Lead</button></div>
-      <div className="tabrow"><button className={view === 'follow' ? 'on' : ''} onClick={() => setView('follow')}>Follow-ups{due.length ? ` · ${due.length}` : ''}</button><button className={view === 'all' ? 'on' : ''} onClick={() => setView('all')}>All leads · {prospects.length}</button><button className={view === 'board' ? 'on' : ''} onClick={() => setView('board')}>Board</button></div>
+      <div className="tabrow"><button className={view === 'find' ? 'on' : ''} onClick={() => setView('find')}>Find Leads</button><button className={view === 'follow' ? 'on' : ''} onClick={() => setView('follow')}>Follow-ups{due.length ? ` · ${due.length}` : ''}</button><button className={view === 'all' ? 'on' : ''} onClick={() => setView('all')}>All leads · {prospects.length}</button><button className={view === 'board' ? 'on' : ''} onClick={() => setView('board')}>Board</button></div>
+
+      {view === 'find' && <>
+        <div className="listcard" style={{ padding: 16 }}>
+          <div className="sectionlabel" style={{ marginTop: 0 }}>Google Maps lead finder</div>
+          <div className="row" style={{ paddingLeft: 0, paddingRight: 0 }}><div className="row-main">
+            <div className="row-title">Search your local scraper</div>
+            <div className="row-sub">Runs against the Google Maps scraper on your computer. Nothing is saved until you choose the leads.</div>
+          </div></div>
+          <div className="formgrid">
+            <label>Business category<input className="input" value={findCategory} onChange={e => setFindCategory(e.target.value)} placeholder="cleaning company" /></label>
+            <label>Location<input className="input" value={findLocation} onChange={e => setFindLocation(e.target.value)} placeholder="Houston, TX" /></label>
+            <label>Leads to keep<select className="input" value={findCount} onChange={e => setFindCount(Number(e.target.value))}><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option></select></label>
+            <label>Scraper URL<input className="input" value={scraperUrl} onChange={e => setScraperUrl(e.target.value)} placeholder="http://localhost:8080" /></label>
+          </div>
+          <button className="btn primary" style={{ marginTop: 12 }} disabled={scrapeBusy} onClick={scrape}>{scrapeBusy ? 'Searching…' : 'Find leads'}</button>
+          {scrapeJobId && <div className="row-sub" style={{ marginTop: 10 }}>Job {scrapeJobId} · results are being collected locally.</div>}
+        </div>
+        {scrapeResults.length > 0 && <div className="group">
+          <div className="sectionlabel">Review results · {scrapeResults.length}</div>
+          {scrapeResults.map((r, i) => {
+            const key = scrapeKey(r, i); const checked = selectedResults.has(key)
+            return <label key={key} className="row" style={{ cursor: 'pointer' }}>
+              <input type="checkbox" checked={checked} onChange={() => setSelectedResults(prev => { const n = new Set(prev); checked ? n.delete(key) : n.add(key); return n })} />
+              <div className="row-main"><div className="row-title">{String(r.title || r.name || 'Unnamed business')}</div><div className="row-sub">{[r.category, r.city || r.address, r.phone, r.review_rating ? String(r.review_rating) + '★' : '', r.review_count ? String(r.review_count) + ' reviews' : ''].filter(Boolean).join(' · ')}</div><div className="row-sub">{String(r.website || r.link || '')}</div></div>
+            </label>
+          })}
+          <div className="pills"><button className="pill" onClick={() => setSelectedResults(new Set(scrapeResults.map(scrapeKey)))}>Select all</button><button className="pill" onClick={() => setSelectedResults(new Set())}>Clear</button><button className="pill" onClick={saveScraped}>Save selected to this business</button></div>
+        </div>}
+      </>}
 
       {view === 'follow' && <>
         <Group title={`Follow-ups due · ${due.length}`} items={due.map(p => <Action key={p.id} p={p} />)} empty="No follow-ups due. Add a follow-up date on a lead to see it here." />
