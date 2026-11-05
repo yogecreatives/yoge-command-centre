@@ -52,7 +52,7 @@ function Plain({ p }: { p: Prospect }) {
   )
 }
 
-export function Pipeline() {
+export function Pipeline({ embedded = false }: { embedded?: boolean }) {
   const { prospects: allProspects, activities: allActivities, settings, businesses, create, createMany, update } = useData()
   const open = useEditor(); const toast = useToast(); const { setStage } = usePipelineActions()
   const [view, setView] = useState<'today' | 'all' | 'board'>('today')
@@ -126,7 +126,6 @@ export function Pipeline() {
 
   return (
     <>
-      <button className="backlink" onClick={() => (location.hash = '/b/white-label')}><Icon name="back" size={18} />White Label</button>
       <header className="large"><div><p className="date">Agency partnerships</p><h1>Pipeline</h1></div>
         <div className="toolbar"><button className="iconbtn" onClick={() => open('prospect')} aria-label="Add agency"><Icon name="plus" /></button></div></header>
       <Segmented value={view} onChange={setView} options={[['today', 'Today'], ['all', 'All agencies'], ['board', 'Board']]} />
