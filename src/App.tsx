@@ -5,6 +5,7 @@ import { configured } from './lib/supabase'
 import { useRoute, go } from './lib/route'
 import { ToastProvider } from './ui/toast'
 import { Icon } from './ui/Icon'
+import { PillNav } from './ui/Stack'
 import { EditorProvider } from './components/Editors'
 import { useEditor } from './components/editorContext'
 import { AuthPage, NewPassword } from './pages/AuthPage'
@@ -69,24 +70,24 @@ function Shell() {
   else if (path === '/settings') page = <Settings />
   else page = <Today />
 
+  const activeNav = path === '/home' || path === '/' ? 'home'
+    : path.startsWith('/tasks') ? 'tasks'
+    : path.startsWith('/pipeline') ? 'pipeline'
+    : path.startsWith('/projects') ? 'projects'
+    : 'more'
+
   return (
     <div className="shell">
-      <aside className="side">
-        <div className="mark">YOGE</div>
-        <button className="btn primary block" onClick={() => open('new')}><Icon name="plus" size={18} /> New</button>
-        <nav>
-          {([['/home', 'Home', 'today'], ['/tasks', 'Tasks', 'tasks'], ['/pipeline', 'Pipeline', 'send'], ['/projects', 'Projects', 'folder'], ['/followups', 'Follow-ups', 'follow'], ['/calendar', 'Calendar', 'calendar'], ['/money', 'Money', 'money'], ['/partners', 'Partners', 'users'], ['/ideas', 'Ideas', 'idea']] as [string, string, string][]).map(([to, label, icon]) => <button key={to} className={path === to ? 'on' : ''} onClick={() => go(to)}><Icon name={icon} size={20} />{label}</button>)}
-          <button className={path === '/inbox' ? 'on' : ''} onClick={() => go('/inbox')}><Icon name="bell" size={20} />Notifications{unread > 0 && <b>{unread}</b>}</button>
-          <div className="side-label">Businesses</div>
-          {businesses.map(b => <button key={b.id} className={path === '/b/' + b.slug ? 'on' : ''} onClick={() => go('/b/' + b.slug)}><span className="glyph">{b.symbol}</span>{b.name}</button>)}
-          <button className={path === '/settings' ? 'on' : ''} onClick={() => go('/settings')} style={{ marginTop: 'auto' }}><Icon name="gear" size={20} />Settings</button>
-        </nav>
-      </aside>
       <main className="main">
         {!online && <div className="banner">You are offline. Showing the last loaded data; changes cannot be saved.</div>}
         <div className="page">{page}</div>
         <div className={`sync ${busy ? 'on' : ''}`} aria-live="polite">{busy ? 'Saving…' : ''}</div>
       </main>
+      <PillNav
+        tabs={[['home', 'Home'], ['tasks', 'Tasks'], ['pipeline', 'Pipeline'], ['projects', 'Projects'], ['more', 'More']]}
+        active={activeNav}
+        onGo={id => go(id === 'home' ? '/home' : '/' + id)}
+      />
       <button className="fab" onClick={() => open('new')} aria-label="Add new"><Icon name="plus" size={26} /></button>
       <button hidden onClick={reload} />
     </div>
