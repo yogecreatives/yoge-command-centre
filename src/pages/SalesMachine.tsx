@@ -6,8 +6,92 @@ import { YcSales } from '../workspaces/yc/Sales'
 import { YcFinder } from '../workspaces/yc/Finder'
 import { YcAssistant } from '../workspaces/yc/Assistant'
 import { YcPipeline } from '../workspaces/yc/Pipeline'
+import { go } from '../lib/route'
 
 type ToolTab = 'leads' | 'review' | 'assistant' | 'sales'
+
+function UniversalMenu({ businessId, businessName, onChangeBusiness }: {
+  businessId: string | null
+  businessName?: string
+  onChangeBusiness: () => void
+}) {
+  const [open, setOpen] = useState(false)
+
+  const items = [
+    { label: 'Home', path: '/home' },
+    { label: 'Yogecreatives', path: '/w/yogecreatives/overview' },
+    { label: 'Yogeworks', path: '/w/yogeworks/overview' },
+    { label: 'White Label', path: '/w/white-label/pipeline' },
+    { label: 'Sales Machine', path: '/sales-machine' },
+  ]
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button className="chip-sw" onClick={() => setOpen(v => !v)} aria-expanded={open}>
+        <span className="av">{businessName?.[0] ?? 'S'}</span>
+        {businessName ? businessName + ' — Sales Machine' : 'Sales Machine'}
+        <span className="sw-chevron">⌄</span>
+      </button>
+
+      {open && (
+        <>
+          <button
+            aria-label="Close menu"
+            onClick={() => setOpen(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 20, background: 'transparent', border: 0 }}
+          />
+          <div
+            className="listcard"
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 8px)',
+              left: 0,
+              minWidth: 250,
+              zIndex: 30,
+              padding: 6,
+              boxShadow: '0 18px 45px rgba(0,0,0,.18)',
+            }}
+          >
+            {items.map(item => (
+              <button
+                key={item.label}
+                className="row"
+                style={{ width: '100%', border: 0, background: 'transparent', borderRadius: 10 }}
+                onClick={() => {
+                  setOpen(false)
+                  go(item.path)
+                }}
+              >
+                <span className="row-main">
+                  <span className="row-title">{item.label}</span>
+                  <span className="row-sub">{item.label === 'Sales Machine' ? 'Find, research, approve and sell' : 'Open workspace'}</span>
+                </span>
+                <Icon name="chevron" size={15} />
+              </button>
+            ))}
+
+            {businessId && (
+              <button
+                className="row"
+                style={{ width: '100%', border: 0, background: 'transparent', borderRadius: 10 }}
+                onClick={() => {
+                  setOpen(false)
+                  onChangeBusiness()
+                }}
+              >
+                <span className="row-main">
+                  <span className="row-title">Change Sales Machine business</span>
+                  <span className="row-sub">Keep working in Sales Machine</span>
+                </span>
+                <Icon name="chevron" size={15} />
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
 
 export function SalesMachine() {
   const { businesses } = useData()
@@ -21,9 +105,8 @@ export function SalesMachine() {
       <div className="shell2 sales-machine-shell"><div className="page">
         <div className="wshead">
           <div>
-            <div className="eyebrow">YOGE COMMAND CENTRE</div>
-            <h1 className="pagetitle">Sales Machine</h1>
-            <p className="pagesub">One sales engine. Separate leads, pipelines and outreach for every business.</p>
+            <UniversalMenu businessId={null} />
+            <p className="pagesub" style={{ marginTop: 8 }}>Sales Machine · one shared sales engine for every Yoge business.</p>
           </div>
         </div>
 
@@ -43,11 +126,10 @@ export function SalesMachine() {
 
         {!list.length && <div className="deck-empty">No businesses are available for your account.</div>}
 
-        <div className="sectionlabel">How it works</div>
+        <div className="sectionlabel">Sales Machine</div>
         <div className="listcard">
-          <div className="row"><div className="row-main"><div className="row-title">Select a business first</div><div className="row-sub">Every prospect belongs to the selected business through its business_id.</div></div></div>
-          <div className="row"><div className="row-main"><div className="row-title">Research and review</div><div className="row-sub">The same Finder and evidence-first review workflow can be used across businesses.</div></div></div>
-          <div className="row"><div className="row-main"><div className="row-title">Draft and follow up</div><div className="row-sub">AI assists with drafts, while you remain in control of decisions and sending.</div></div></div>
+          <div className="row"><div className="row-main"><div className="row-title">Find → Research → Approve</div><div className="row-sub">Build a focused lead list and review the evidence before outreach.</div></div></div>
+          <div className="row"><div className="row-main"><div className="row-title">AI assists, you decide</div><div className="row-sub">Research and outreach drafts are automated; classification, approval and sending stay with you.</div></div></div>
         </div>
       </div></div>
     )
@@ -57,10 +139,8 @@ export function SalesMachine() {
     <div className="shell2 sales-machine-shell"><div className="page">
       <div className="wshead">
         <div>
-          <button className="chip-sw" onClick={() => setBusinessId(null)}>
-            <span className="av">{business.name[0]}</span>{business.name}<span className="sw-chevron">Change</span>
-          </button>
-          <p className="pagesub" style={{ marginTop: 8 }}>Sales Machine · leads and outreach stay with this business.</p>
+          <UniversalMenu businessId={business.id} businessName={business.name} onChangeBusiness={() => setBusinessId(null)} />
+          <p className="pagesub" style={{ marginTop: 8 }}>Sales Machine · leads and outreach stay with {business.name}.</p>
         </div>
       </div>
 
