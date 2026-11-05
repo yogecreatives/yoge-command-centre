@@ -40,6 +40,7 @@ interface DataCtx {
   updateSettings: (v: Partial<Settings>) => Promise<void>
   updateProfile: (userId: string, values: Record<string, unknown>) => Promise<boolean>
   setMembership: (userId: string, businessId: string, enabled: boolean) => Promise<boolean>
+  createBusiness: (values: Record<string, unknown>) => Promise<Business | null>
   reload: () => Promise<void>
   signOut: () => Promise<void>
 }
@@ -206,6 +207,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (userId === uid) setProfile(data as Profile)
     return true
   }, false)
+  const createBusiness = async (values: Record<string, unknown>) => guard(async () => {
+    const { data, error: e } = await supabase.from('businesses').insert({ ...values, user_id: uid }).select().single()
+    if (e) throw new Error(e.message)
+    setBusinesses(xs => [...xs, data as Business].sort((a,b) => a.sort_order - b.sort_order))
+    return data as Business
+  }, null)
+
   const setMembership = async (userId: string, businessId: string, enabled: boolean) => guard(async () => {
     if (enabled) {
       const { error: e } = await supabase.from('workspace_memberships').upsert({ user_id: userId, business_id: businessId, role: 'member' }, { onConflict: 'business_id,user_id' })
@@ -242,7 +250,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     tasks: db.tasks, followUps: db.follow_ups, projects: db.projects, ideas: db.ideas, notifications: db.notifications,
     referrers: db.referrers, prospects: db.prospects, activities: db.prospect_activities, income: db.income_entries, expenses: db.expenses,
     settings, create, createMany, update, remove, setTaskStatus, toggleTask, completeFollowUp, reopenFollowUp, rescheduleFollowUp,
-    updateSettings, updateProfile, setMembership, reload, signOut: async () => { await supabase.auth.signOut() },
+    updateSettings, updateProfile, setMembership, createBusiness, reload, signOut: async () => { await supabase.auth.signOut() },
   }
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
