@@ -79,14 +79,14 @@ export function Home() {
     const b = businesses.find(x => x.id === item.businessId)
     if (!b) return
     if (item.kind === 'task' && item.task) {
-      if (b.slug === 'yogecreatives' || b.slug === 'white-label') go(`/w/${b.slug}/tasks?task=${item.task.id}`)
+      if (b.slug === 'yogecreatives' || b.slug === 'white-label' || b.slug === 'yogeworks') go(`/w/${b.slug}/tasks?task=${item.task.id}`)
       else go(`/b/${b.slug}?task=${item.task.id}`)
     } else if (item.kind === 'followup' && item.followup) {
-      if (b.slug === 'yogecreatives' || b.slug === 'white-label') go(`/w/${b.slug}/tasks?followup=${item.followup.id}`)
+      if (b.slug === 'yogecreatives' || b.slug === 'white-label' || b.slug === 'yogeworks') go(`/w/${b.slug}/tasks?followup=${item.followup.id}`)
       else go(`/b/${b.slug}?followup=${item.followup.id}`)
     } else if (item.kind === 'prospect' && item.prospect) {
       const route = b.slug === 'yogecreatives' ? 'lead' : 'prospect'
-      if (b.slug === 'yogecreatives' || b.slug === 'white-label') go(`/w/${b.slug}/pipeline?prospect=${item.prospect.id}`)
+      if (b.slug === 'yogecreatives' || b.slug === 'white-label' || b.slug === 'yogeworks') go(`/w/${b.slug}/pipeline?prospect=${item.prospect.id}`)
       else go(`/b/${b.slug}?prospect=${item.prospect.id}`)
       void route
     }
