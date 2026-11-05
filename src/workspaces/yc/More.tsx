@@ -1,11 +1,11 @@
 import { go } from '../../lib/route'
 import { Icon } from '../../ui/Icon'
-export function YcMore() {
+export function YcMore({ slug = 'yogecreatives', name = 'Yogecreatives' }: { slug?: string; name?: string }) {
   const item = (to: string, label: string, sub: string, icon: string) => (
-    <button className="row" onClick={() => go('/w/yogecreatives/more/' + to)}><span className="tile sm"><Icon name={icon} size={18} /></span><div className="row-main"><div className="row-title">{label}</div><div className="row-sub">{sub}</div></div><Icon name="chevron" size={16} /></button>)
+    <button className="row" onClick={() => go('/w/' + slug + '/more/' + to)}><span className="tile sm"><Icon name={icon} size={18} /></span><div className="row-main"><div className="row-title">{label}</div><div className="row-sub">{sub}</div></div><Icon name="chevron" size={16} /></button>)
   return (
     <>
-      <h1 className="pagetitle">More</h1><p className="pagesub">Yogecreatives finance, reports, contacts and settings.</p>
+      <h1 className="pagetitle">More</h1><p className="pagesub">{name} finance, reports, contacts and settings.</p>
       <div className="group">
         {item('finance', 'Finance', 'Income, expenses and pending payments', 'money')}
         {item('reports', 'Reports', 'Daily, weekly, monthly and yearly', 'tasks')}
@@ -15,6 +15,6 @@ export function YcMore() {
     </>
   )
 }
-export function SubBack({ title, sub }: { title: string; sub?: string }) {
-  return (<><button className="backlink" onClick={() => go('/w/yogecreatives/more')}><Icon name="back" size={18} />More</button><h1 className="pagetitle" style={{ marginTop: 8 }}>{title}</h1>{sub && <p className="pagesub">{sub}</p>}</>)
+export function SubBack({ title, sub, slug = 'yogecreatives' }: { title: string; sub?: string; slug?: string }) {
+  return (<><button className="backlink" onClick={() => go('/w/' + slug + '/more')}><Icon name="back" size={18} />More</button><h1 className="pagetitle" style={{ marginTop: 8 }}>{title}</h1>{sub && <p className="pagesub">{sub}</p>}</>)
 }
