@@ -38,6 +38,8 @@ interface DataCtx {
   reopenFollowUp: (f: FollowUp) => Promise<void>
   rescheduleFollowUp: (f: FollowUp, date: string) => Promise<void>
   updateSettings: (v: Partial<Settings>) => Promise<void>
+  updateProfile: (userId: string, values: Record<string, unknown>) => Promise<boolean>
+  setMembership: (userId: string, businessId: string, enabled: boolean) => Promise<boolean>
   reload: () => Promise<void>
   signOut: () => Promise<void>
 }
@@ -197,6 +199,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const reopenFollowUp = async (f: FollowUp) => { await update('follow_ups', f.id, { status: 'open', completed_at: null }) }
   const rescheduleFollowUp = async (f: FollowUp, date: string) => { await update('follow_ups', f.id, { follow_up_date: date, status: 'open', completed_at: null }) }
   const updateSettings = async (v: Partial<Settings>) => { if (settings) await update_settings(v) }
+  const updateProfile = async (userId: string, values: Record<string, unknown>) => guard(async () => {
+    const { data, error: e } = await supabase.from('profiles').update(values).eq('user_id', userId).select().single()
+    if (e) throw new Error(e.message)
+    setTeamProfiles(xs => xs.map(x => x.user_id === userId ? data as Profile : x))
+    if (userId === uid) setProfile(data as Profile)
+    return true
+  }, false)
+  const setMembership = async (userId: string, businessId: string, enabled: boolean) => guard(async () => {
+    if (enabled) {
+      const { error: e } = await supabase.from('workspace_memberships').upsert({ user_id: userId, business_id: businessId, role: 'member' }, { onConflict: 'business_id,user_id' })
+      if (e) throw new Error(e.message)
+    } else {
+      const { error: e } = await supabase.from('workspace_memberships').delete().eq('user_id', userId).eq('business_id', businessId)
+      if (e) throw new Error(e.message)
+    }
+    const { data, error: e2 } = await supabase.from('workspace_memberships').select('*')
+    if (e2) throw new Error(e2.message)
+    setMemberships((data ?? []) as WorkspaceMembership[])
+    return true
+  }, false)
   const update_settings = (v: Partial<Settings>) => guard(async () => {
     const { data, error: e } = await supabase.from('user_settings').update(v).eq('user_id', uid).select().single()
     if (e) throw new Error(e.message)
@@ -220,7 +242,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     tasks: db.tasks, followUps: db.follow_ups, projects: db.projects, ideas: db.ideas, notifications: db.notifications,
     referrers: db.referrers, prospects: db.prospects, activities: db.prospect_activities, income: db.income_entries, expenses: db.expenses,
     settings, create, createMany, update, remove, setTaskStatus, toggleTask, completeFollowUp, reopenFollowUp, rescheduleFollowUp,
-    updateSettings, reload, signOut: async () => { await supabase.auth.signOut() },
+    updateSettings, updateProfile, setMembership, reload, signOut: async () => { await supabase.auth.signOut() },
   }
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
