@@ -234,6 +234,7 @@ a.btn{text-decoration:none}label.btn{cursor:pointer}
 .chip-sw{display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:999px;background:var(--group);border:.5px solid var(--line);font-weight:600;font-size:13px;letter-spacing:.02em}
 .chip-sw .av{width:26px;height:26px;border-radius:50%;background:var(--primary);color:var(--primary-ink);display:grid;place-items:center;font-size:12px;font-weight:700}
 .chip-sw i{font-style:normal;color:var(--muted)}
+.chip-sw .sw-chevron{display:inline-flex;align-items:center;color:var(--muted);transform:rotate(90deg);margin-left:1px}
 .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 [data-theme="dark"] .eyebrow{font-family:var(--mono);letter-spacing:.06em;font-size:10px}
 .hero-n{font-size:84px;line-height:1;font-weight:200;letter-spacing:-.05em;margin:6px 0 0}
