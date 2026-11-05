@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useData } from '../lib/data'
 import { Icon } from '../ui/Icon'
 import { go } from '../lib/route'
