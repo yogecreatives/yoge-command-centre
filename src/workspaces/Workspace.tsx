@@ -9,8 +9,13 @@ export const YC_TABS: [string, string][] = [['overview', 'Overview'], ['tasks', 
 export const WL_TABS: [string, string][] = [['pipeline', 'Pipeline'], ['tasks', 'Tasks']]
 
 export function WorkspaceShell({ slug, tab, children, tabs = YC_TABS }: { slug: string; tab: string; children: ReactNode; tabs?: [string, string][] }) {
-  const { notifications } = useData()
-  const unread = notifications.filter(n => !n.read_at).length
+  const { notifications, tasks, followUps, projects, prospects, income, expenses, bizBySlug } = useData()
+  const rows: Record<string, any[]> = { tasks, follow_ups: followUps, projects, prospects, income_entries: income, expenses }
+  const bizId = bizBySlug(slug)?.id
+  const unread = notifications.filter(n => {
+    if (n.read_at || !n.ref_id || !n.ref_table) return false
+    return rows[n.ref_table]?.find(x => x.id === n.ref_id)?.business_id === bizId
+  }).length
   return (
     <div className="shell2"><div className="page">
       <div className="wshead"><BizSwitcher slug={slug} />
