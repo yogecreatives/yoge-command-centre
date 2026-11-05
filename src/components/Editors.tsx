@@ -1,4 +1,5 @@
 import { ReactNode, useCallback, useState } from 'react'
+import { useRoute } from '../lib/route'
 import { EditorCtx, EditorKind, useEditor } from './editorContext'
 import { ProspectSheet } from './ProspectSheet'
 import { RepliedSheet } from './RepliedSheet'
@@ -18,7 +19,17 @@ interface Open { kind: EditorKind; item?: any; defaults?: Record<string, any> }
 
 export function EditorProvider({ children }: { children: ReactNode }) {
   const [cur, setCur] = useState<Open | null>(null)
-  const open = useCallback((kind: EditorKind, item?: any, defaults?: Record<string, any>) => setCur({ kind, item, defaults }), [])
+  const route = useRoute()
+  const { bizBySlug } = useData()
+  const parts = route.split('?')[0].split('/').filter(Boolean)
+  const workspaceSlug = parts[0] === 'w' ? parts[1] : undefined
+  const workspaceBusiness = workspaceSlug ? bizBySlug(workspaceSlug) : undefined
+  const open = useCallback((kind: EditorKind, item?: any, defaults?: Record<string, any>) => {
+    const scopedDefaults = workspaceBusiness
+      ? { ...defaults, business_id: defaults?.business_id ?? workspaceBusiness.id, lockedBusinessId: workspaceBusiness.id }
+      : defaults
+    setCur({ kind, item, defaults: scopedDefaults })
+  }, [workspaceBusiness])
   const close = useCallback(() => setCur(null), [])
   return (
     <EditorCtx.Provider value={open}>
