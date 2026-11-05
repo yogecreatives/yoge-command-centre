@@ -6,7 +6,7 @@ import { Icon } from '../../ui/Icon'
 import { STAGE } from '../../lib/labels'
 import { buildContacts } from '../../lib/contacts'
 
-export function YcContacts({ bizId }: { bizId: string }) {
+export function YcContacts({ bizId, slug = 'yogecreatives' }: { bizId: string; slug?: string }) {
   const { prospects, projects } = useData(); const open = useEditor()
   const [q, setQ] = useState(''); const [tab, setTab] = useState<'all' | 'clients' | 'leads'>('all')
   const all = useMemo(() => buildContacts(prospects.filter(p => p.business_id === bizId), projects.filter(p => p.business_id === bizId)), [prospects, projects, bizId])
@@ -14,7 +14,7 @@ export function YcContacts({ bizId }: { bizId: string }) {
   const tabs: [typeof tab, string][] = [['all', 'All'], ['clients', 'Clients'], ['leads', 'Leads']]
   return (
     <>
-      <SubBack title="Contacts" sub="Clients and prospects, without duplicates." />
+      <SubBack title="Contacts" sub="Clients and prospects, without duplicates." slug={slug} />
       <div className="search"><Icon name="search" size={18} /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Search name, email or phone" /></div>
       <div className="tabrow">{tabs.map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</div>
       <div className="group">{list.length ? list.slice(0, 200).map(c => (
