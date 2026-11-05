@@ -47,7 +47,7 @@ export function YcFinance({ bizId, slug = 'yogecreatives' }: { bizId: string; sl
   const received = yp.reduce((a, p) => a + Number(p.paid_amount), 0)
   const I = income.filter(i => i.entry_date.startsWith(year) && (!i.business_id || i.business_id === bizId)).sort((a, b) => b.entry_date.localeCompare(a.entry_date))
   const other = I.filter(i => i.status === 'received').reduce((a, i) => a + Number(i.amount), 0), expect = I.filter(i => i.status === 'expected').reduce((a, i) => a + Number(i.amount), 0)
-  const E = expenses.filter(e => e.expense_date.startsWith(year)).sort((a, b) => b.expense_date.localeCompare(a.expense_date))
+  const E = expenses.filter(e => e.business_id === bizId && e.expense_date.startsWith(year)).sort((a, b) => b.expense_date.localeCompare(a.expense_date))
   const spent = E.reduce((a, e) => a + Number(e.amount), 0)
   const pending = P.filter(p => p.status !== 'dropped' && Number(p.balance_amount) > 0).sort((a, b) => Number(b.balance_amount) - Number(a.balance_amount))
   const pendSum = pending.reduce((a, p) => a + Number(p.balance_amount), 0)
@@ -66,7 +66,7 @@ export function YcFinance({ bizId, slug = 'yogecreatives' }: { bizId: string; sl
       <Group title={`Expenses · ${f(spent)}`} action={<button className="link" onClick={() => setEx('new')} aria-label="Add expense"><Icon name="plus" size={18} /></button>}
         items={E.map(e => <button key={e.id} className="row" onClick={() => setEx(e)}><div className="row-main"><div className="row-title">{e.category || 'Expense'}{e.vendor ? ` · ${e.vendor}` : ''}</div><div className="row-sub">{fmtDate(e.expense_date)}</div></div><span className="chip">{f(Number(e.amount))}</span></button>)} empty="No expenses recorded. Tap + to add one." />
       {ex && <ExpenseForm item={ex === 'new' ? undefined : ex} bizId={bizId} onClose={() => setEx(null)} />}
-      {inc && <IncomeForm item={inc === 'new' ? undefined : inc} onClose={() => setInc(null)} />}
+      {inc && <IncomeForm item={inc === 'new' ? undefined : inc} bizId={bizId} onClose={() => setInc(null)} />}
     </>
   )
 }
