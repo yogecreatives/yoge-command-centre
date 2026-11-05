@@ -125,7 +125,7 @@ function TaskForm({ item, defaults, onClose }: { item?: Task; defaults?: any; on
   return (
     <Sheet title={item ? 'Edit task' : 'New task'} onClose={onClose}>
       <F label="Task"><input className="input" autoFocus={!item} value={f.title} onChange={e => set('title', e.target.value)} placeholder="What needs doing?" /></F>
-      <F label="Business"><BusinessSelect value={f.business_id} onChange={v => { set('business_id', v); set('project_id', '') }} /></F>
+      {!defaults?.lockedBusinessId && <F label="Business"><BusinessSelect value={f.business_id} onChange={v => { set('business_id', v); set('project_id', '') }} /></F>}
       <div className="two">
         <F label="Due date"><input className="input" type="date" value={f.due_date} onChange={e => set('due_date', e.target.value)} /></F>
         <F label="Type"><select className="input" value={f.task_type} onChange={e => set('task_type', e.target.value)}>{Object.entries(TASK_TYPE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></F>
@@ -174,7 +174,7 @@ function FollowUpForm({ item, defaults, onClose }: { item?: FollowUp; defaults?:
         <F label="Email"><input className="input" type="email" inputMode="email" value={f.email} onChange={e => set('email', e.target.value)} /></F>
         <F label="Phone"><input className="input" type="tel" inputMode="tel" value={f.phone} onChange={e => set('phone', e.target.value)} /></F>
       </div>
-      <F label="Business"><BusinessSelect value={f.business_id} onChange={v => set('business_id', v)} /></F>
+      {!defaults?.lockedBusinessId && <F label="Business"><BusinessSelect value={f.business_id} onChange={v => set('business_id', v)} /></F>}
       <F label="Follow-up date"><input className="input" type="date" value={f.follow_up_date} onChange={e => set('follow_up_date', e.target.value)} /></F>
       <F label="Notes"><textarea className="input" rows={3} value={f.notes} onChange={e => set('notes', e.target.value)} /></F>
       {item && item.status === 'open' && (
@@ -242,7 +242,7 @@ function ProjectForm({ item, defaults, onClose }: { item?: Project; defaults?: a
     <Sheet title={item ? 'Edit project' : 'New project'} onClose={onClose}>
       <F label="Project"><input className="input" autoFocus={!item} value={f.name} onChange={e => set('name', e.target.value)} placeholder="e.g. HARRY_DENTAL CLINIC" /></F>
       <div className="two">
-        <F label="Business"><BusinessSelect value={f.business_id} onChange={v => set('business_id', v)} /></F>
+        {!defaults?.lockedBusinessId && <F label="Business"><BusinessSelect value={f.business_id} onChange={v => set('business_id', v)} /></F>}
         <F label="Date"><input className="input" type="date" value={f.start_date} onChange={e => set('start_date', e.target.value)} /></F>
       </div>
       <F label="Status"><select className="input" value={f.status} onChange={e => set('status', e.target.value)}>{Object.entries(PROJECT_STATUS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></F>
