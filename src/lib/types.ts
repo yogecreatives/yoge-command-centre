@@ -54,7 +54,7 @@ export interface Prospect extends Base {
   outreach_draft: string | null; outreach_channel: 'email' | 'facebook' | 'instagram' | 'linkedin' | 'other' | null
   outreach_approved_at: string | null; decision_notes: string | null
 }
-export interface Activity { id: string; user_id: string; prospect_id: string; kind: 'email_sent' | 'dm_sent' | 'replied' | 'call' | 'note' | 'stage_change'; note: string | null; created_at: string }
+export interface Activity { id: string; user_id: string; prospect_id: string; kind: 'email_sent' | 'dm_sent' | 'replied' | 'call' | 'note' | 'stage_change' | 'research' | 'approval' | 'rejection'; note: string | null; created_at: string }
 export interface Income extends Base { business_id: string | null; source: string; amount: number; entry_date: string; status: 'received' | 'expected'; notes: string | null }
 export interface MailTemplate { subject: string; body: string }
 export type Templates = Record<'email_1' | 'follow_up_1' | 'follow_up_2' | 'last_nudge', MailTemplate>
