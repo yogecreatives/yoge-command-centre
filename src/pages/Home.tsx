@@ -122,6 +122,15 @@ export function Home() {
 
       {cards.length ? <WalletStack cards={cards} onOpen={slug => go(businessRoute(slug))} /> : <div className="deck-empty">Setting up your businesses…</div>}
 
+      <div className="sectionlabel">Sales</div>
+      <button className="listcard" style={{ width: '100%', textAlign: 'left' }} onClick={() => go('/sales-machine')}>
+        <div className="row">
+          <span className="tile sm"><Icon name="send" size={17} /></span>
+          <div className="row-main"><div className="row-title">Sales Machine</div><div className="row-sub">One sales engine for Yogecreatives, Yogeworks and White Label. Select a business before working leads.</div></div>
+          <span className="chip">Open →</span>
+        </div>
+      </button>
+
       <div className="sectionlabel">Needs attention</div>
       <div className="listcard">
         {attention.length ? attention.map(item => (
