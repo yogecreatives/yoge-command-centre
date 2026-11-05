@@ -14,7 +14,7 @@ const IMPORT_KEY = 'yoge_v2_imported'
 const BIZ_SLUGS = ['white-label', 'yogeworks', 'yogecreatives', 'yogefolio', 'other']
 
 export function Settings({ scope }: { scope?: string } = {}) {
-  const { settings, updateSettings, email, signOut, online, businesses, createMany, referrers, prospects, projects, income, reload } = useData()
+  const { settings, updateSettings, email, signOut, online, businesses, createMany, referrers, prospects, projects, income, reload, isAdmin } = useData()
   const toast = useToast()
   const [raw, setRaw] = useState('')
   const [importing, setImporting] = useState(false)
@@ -132,6 +132,8 @@ export function Settings({ scope }: { scope?: string } = {}) {
         <textarea className="input" rows={4} value={raw} onChange={e => setRaw(e.target.value)} placeholder='{"tasks":[…],"ideas":[…]}' />
         <button className="btn block" disabled={!raw.trim() || importing} onClick={doImport}>{importing ? 'Importing…' : 'Import data'}</button>
       </div></section>
+
+      {!scope && isAdmin && <AdminDashboard />}
 
       <section className="section"><div className="section-title"><span>Account</span></div><div className="group">
         <div className="row"><div className="row-main"><div className="row-title">{email}</div><div className="row-sub">{online ? 'Online · changes sync live across devices' : 'Offline · changes are not saved until you reconnect'}</div></div></div>
