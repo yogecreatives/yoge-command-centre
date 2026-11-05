@@ -28,6 +28,9 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
   const [queue, setQueue] = useState<'review' | 'research' | 'approved' | 'all'>('review')
   const [sort, setSort] = useState<'priority' | 'newest' | 'name'>('priority')
   const [researching, setResearching] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [batchResearching, setBatchResearching] = useState(false)
+  const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 })
 
   const leads = useMemo(() => prospects.filter(p => p.business_id === bizId), [prospects, bizId])
 
@@ -58,9 +61,20 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
     return rows
   }, [leads, q, queue, sort])
 
-  const research = async (p: Prospect) => {
-    if (!p.website) return
-    setResearching(p.id)
+  const toggleSelected = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const selectVisible = () => setSelected(new Set(list.filter(p => !!p.website).map(p => p.id)))
+  const clearSelected = () => setSelected(new Set())
+
+  const researchOne = async (p: Prospect) => {
+    if (!p.website) return false
     try {
       const res = await fetch('/api/research?url=' + encodeURIComponent(p.website))
       const data = await res.json()
@@ -74,14 +88,36 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
         research_summary: data.summary,
         research_data: data,
       })
-      if (ok) {
-        await create('prospect_activities', { prospect_id: p.id, kind: 'research', note: 'Website research completed' })
-      }
-    } catch (e) {
-      window.alert((e as Error).message || 'Research failed')
-    } finally {
-      setResearching(null)
+      if (ok) await create('prospect_activities', { prospect_id: p.id, kind: 'research', note: 'Website research completed' })
+      return !!ok
+    } catch {
+      return false
     }
+  }
+
+  const research = async (p: Prospect) => {
+    if (!p.website) return
+    setResearching(p.id)
+    await researchOne(p)
+    setResearching(null)
+  }
+
+  const batchResearch = async () => {
+    const targets = list.filter(p => selected.has(p.id) && !!p.website)
+    if (!targets.length) return
+    setBatchResearching(true)
+    setBatchProgress({ done: 0, total: targets.length })
+    let done = 0
+    for (let i = 0; i < targets.length; i += 2) {
+      const chunk = targets.slice(i, i + 2)
+      await Promise.all(chunk.map(async p => {
+        await researchOne(p)
+        done += 1
+        setBatchProgress({ done, total: targets.length })
+      }))
+    }
+    setBatchResearching(false)
+    setSelected(new Set())
   }
 
   const setClassification = async (p: Prospect, value: Classification) => {
@@ -136,6 +172,22 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
       </div>
 
       <div className="search"><input value={q} onChange={e => setQ(e.target.value)} placeholder="Search business, city, category, website" /></div>
+      {!!list.length && <div className="listcard" style={{ marginTop: 10 }}>
+        <div className="rt">
+          <div className="row-main">
+            <div className="row-title">Batch research</div>
+            <div className="row-sub">Select prospects with websites and research them together. No website classification is changed automatically.</div>
+          </div>
+          <span className="chip">{selected.size} selected</span>
+        </div>
+        <div className="act">
+          <button className="mini" onClick={selectVisible} disabled={batchResearching}>Select visible with websites</button>
+          <button className="mini" onClick={clearSelected} disabled={batchResearching || !selected.size}>Clear</button>
+          <button className="mini rep" onClick={batchResearch} disabled={batchResearching || !selected.size}>
+            {batchResearching ? 'Researching ' + batchProgress.done + '/' + batchProgress.total + '…' : 'Research selected'}
+          </button>
+        </div>
+      </div>}
       <div className="pills">
         <select className="pill" value={sort} onChange={e => setSort(e.target.value as typeof sort)}>
           <option value="priority">Sort: priority</option>
@@ -152,7 +204,7 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
       )}
 
       <div className="group">
-        {list.map(p => <FinderCard key={p.id} p={p} today={today} researching={researching === p.id} onResearch={() => research(p)} onOpen={() => open('lead', p)} onClassify={setClassification} onPriority={setPriority} onReview={review} />)}
+        {list.map(p => <FinderCard key={p.id} p={p} today={today} selected={selected.has(p.id)} onToggle={() => toggleSelected(p.id)} researching={researching === p.id || batchResearching} onResearch={() => research(p)} onOpen={() => open('lead', p)} onClassify={setClassification} onPriority={setPriority} onReview={review} />)}
       </div>
 
       {!!leads.length && !list.length && <div className="deck-empty">Nothing matches this Finder queue.</div>}
@@ -170,9 +222,11 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
   )
 }
 
-function FinderCard({ p, today, researching, onResearch, onOpen, onClassify, onPriority, onReview }: {
+function FinderCard({ p, today, selected, onToggle, researching, onResearch, onOpen, onClassify, onPriority, onReview }: {
   p: Prospect
   today: string
+  selected: boolean
+  onToggle: () => void
   researching: boolean
   onResearch: () => void
   onOpen: () => void
@@ -187,6 +241,7 @@ function FinderCard({ p, today, researching, onResearch, onOpen, onClassify, onP
   return (
     <div className="row col">
       <div className="rt">
+        {p.website && <input type="checkbox" checked={selected} onChange={onToggle} disabled={researching} aria-label={'Select ' + p.agency_name + ' for batch research'} />}
         <button className="row-main" onClick={onOpen}>
           <div className="row-title">{p.agency_name}</div>
           <div className="row-sub">{[p.city, p.category, p.source].filter(Boolean).join(' · ') || 'Prospect'}</div>
