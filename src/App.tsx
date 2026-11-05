@@ -53,6 +53,7 @@ function Shell() {
   const unread = notifications.filter(n => !n.read_at).length
   const parts = path.split('/').filter(Boolean)
   if (path === '/home' || path === '/') return <Home />
+  if (path === '/inbox') return <div className="shell2"><div className="page"><Inbox /></div></div>
   if (parts[0] === 'w') return <WorkspaceRoute parts={parts} />
   let page
   if (path.startsWith('/b/')) page = <Business key={path} slug={path.slice(3)} />
@@ -64,7 +65,6 @@ function Shell() {
   else if (path === '/money') page = <Money />
   else if (path === '/calendar') page = <CalendarPage />
   else if (path === '/ideas') page = <Ideas />
-  else if (path === '/inbox') page = <Inbox />
   else if (path === '/more') page = <More />
   else if (path === '/settings') page = <Settings />
   else page = <Today />
