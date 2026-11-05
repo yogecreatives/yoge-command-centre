@@ -15,7 +15,7 @@ export function BizSwitcher({ slug, label }: { slug?: string; label?: string }) 
       {open && (
         <Sheet title="Switch business" onClose={() => setOpen(false)}>
           <div className="group">
-            <button className="row" onClick={() => { setOpen(false); go('/home') }}><div className="row-main"><div className="row-title">YOGE home</div><div className="row-sub">All businesses</div></div></button>
+            <button className="row" onClick={() => { setOpen(false); go('/home') }}><div className="row-main"><div className="row-title">Home</div><div className="row-sub">All businesses</div></div></button>
             {visibleBusinesses(businesses).map(b => (
               <button key={b.id} className="row" onClick={() => { setOpen(false); go(businessRoute(b.slug)) }}>
                 <div className="row-main"><div className="row-title">{b.name}</div></div>{b.slug === slug && <span className="chip lime">Open</span>}
