@@ -46,7 +46,7 @@ export function YcAssistant({ bizId, businessName = 'Yogecreatives' }: { bizId: 
   const [status, setStatus] = useState('')
 
   const approved = useMemo(() => prospects
-    .filter(p => p.business_id === bizId && p.review_status === 'approved')
+    .filter(p => p.business_id === bizId && p.review_status === 'approved' && p.website_classification !== 'unreviewed')
     .sort((a, b) => a.agency_name.localeCompare(b.agency_name)), [prospects, bizId])
 
   const selected = approved.find(p => p.id === selectedId) || approved[0] || null
