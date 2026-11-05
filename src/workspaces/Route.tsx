@@ -37,16 +37,16 @@ export function WorkspaceRoute({ parts }: { parts: string[] }) {
     const projectId = query.get('project')
     if (taskId) {
       const item = tasks.find(t => t.id === taskId)
-      if (item) open('task', item)
+      if (item && item.business_id === biz?.id) open('task', item)
     } else if (followupId) {
       const item = followUps.find(f => f.id === followupId)
-      if (item) open('followup', item)
+      if (item && item.business_id === biz?.id) open('followup', item)
     } else if (prospectId) {
       const item = prospects.find(p => p.id === prospectId)
-      if (item) open(slug === 'yogecreatives' ? 'lead' : 'prospect', item)
+      if (item && item.business_id === biz?.id) open(slug === 'yogecreatives' ? 'lead' : 'prospect', item)
     } else if (projectId) {
       const item = projects.find(p => p.id === projectId)
-      if (item) open('project', item)
+      if (item && item.business_id === biz?.id) open('project', item)
     }
   }, [route, slug, tasks, followUps, prospects, projects, open, query.get('task'), query.get('followup'), query.get('prospect'), query.get('project')])
 
