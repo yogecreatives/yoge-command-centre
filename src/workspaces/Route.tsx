@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
 import { useData } from '../lib/data'
-import { go } from '../lib/route'
+import { useEditor } from '../components/editorContext'
+import { go, useRoute } from '../lib/route'
 import { businessRoute } from '../lib/workspaces'
-import { WorkspaceShell } from './Workspace'
+import { WorkspaceShell, WL_TABS } from './Workspace'
 import { YcOverview } from './yc/Overview'
 import { YcTasks } from './yc/Tasks'
 import { YcPipeline } from './yc/Pipeline'
@@ -12,14 +13,49 @@ import { YcFinance } from './yc/Finance'
 import { YcReports } from './yc/Reports'
 import { YcContacts } from './yc/Contacts'
 import { Settings } from '../pages/Settings'
+import { Pipeline } from '../pages/Pipeline'
 
 export function WorkspaceRoute({ parts }: { parts: string[] }) {
-  const { bizBySlug } = useData()
-  const slug = parts[1]; const tab = parts[2] || 'overview'; const sub = parts[3]
+  const { bizBySlug, tasks, followUps, prospects } = useData()
+  const open = useEditor()
+  const route = useRoute()
+  const slug = parts[1]
+  const tab = parts[2] || (slug === 'white-label' ? 'pipeline' : 'overview')
+  const sub = parts[3]
   const biz = bizBySlug(slug)
-  useEffect(() => { if (slug !== 'yogecreatives') go(businessRoute(slug || '')) }, [slug])
+  const query = new URLSearchParams(route.split('?')[1] ?? '')
+
+  useEffect(() => {
+    if (slug !== 'yogecreatives' && slug !== 'white-label') go(businessRoute(slug || ''))
+  }, [slug])
+
+  useEffect(() => {
+    const taskId = query.get('task')
+    const followupId = query.get('followup')
+    const prospectId = query.get('prospect')
+    if (taskId) {
+      const item = tasks.find(t => t.id === taskId)
+      if (item) open('task', item)
+    } else if (followupId) {
+      const item = followUps.find(f => f.id === followupId)
+      if (item) open('followup', item)
+    } else if (prospectId) {
+      const item = prospects.find(p => p.id === prospectId)
+      if (item) open(slug === 'yogecreatives' ? 'lead' : 'prospect', item)
+    }
+  }, [route, slug, tasks, followUps, prospects, open, query.get('task'), query.get('followup'), query.get('prospect')])
+
+  if (slug === 'white-label') {
+    if (!biz) return <div className="shell2"><div className="deck-empty">White Label workspace not found. Reload the app.</div></div>
+    const wlTab = tab === 'tasks' ? 'tasks' : 'pipeline'
+    return <WorkspaceShell slug={slug} tab={wlTab} tabs={WL_TABS}>
+      {wlTab === 'tasks' ? <YcTasks bizId={biz.id} /> : <Pipeline embedded />}
+    </WorkspaceShell>
+  }
+
   if (slug !== 'yogecreatives') return null
   if (!biz) return <div className="shell2"><div className="deck-empty">Yogecreatives workspace not found. Reload the app.</div></div>
+
   let page
   if (tab === 'tasks') page = <YcTasks bizId={biz.id} />
   else if (tab === 'pipeline') page = <YcPipeline bizId={biz.id} />
