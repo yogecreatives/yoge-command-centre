@@ -41,6 +41,7 @@ interface DataCtx {
   updateProfile: (userId: string, values: Record<string, unknown>) => Promise<boolean>
   setMembership: (userId: string, businessId: string, enabled: boolean) => Promise<boolean>
   createBusiness: (values: Record<string, unknown>) => Promise<Business | null>
+  createPartner: (values: { email: string; password: string; full_name: string; position?: string; avatar_url?: string; workspace_ids?: string[] }) => Promise<any | null>
   reload: () => Promise<void>
   signOut: () => Promise<void>
 }
@@ -214,6 +215,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return data as Business
   }, null)
 
+  const createPartner = async (values: { email: string; password: string; full_name: string; position?: string; avatar_url?: string; workspace_ids?: string[] }) => guard(async () => {
+    const { data, error: e } = await supabase.functions.invoke('create-partner', { body: values })
+    if (e) {
+      let message = e.message
+      try {
+        const body = await e.context?.json()
+        if (body?.error) message = body.error
+      } catch {}
+      throw new Error(message)
+    }
+    if (!data?.ok) throw new Error(data?.error || 'Could not create partner account')
+    await load()
+    return data
+  }, null)
+
   const setMembership = async (userId: string, businessId: string, enabled: boolean) => guard(async () => {
     if (enabled) {
       const { error: e } = await supabase.from('workspace_memberships').upsert({ user_id: userId, business_id: businessId, role: 'member' }, { onConflict: 'business_id,user_id' })
@@ -250,7 +266,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     tasks: db.tasks, followUps: db.follow_ups, projects: db.projects, ideas: db.ideas, notifications: db.notifications,
     referrers: db.referrers, prospects: db.prospects, activities: db.prospect_activities, income: db.income_entries, expenses: db.expenses,
     settings, create, createMany, update, remove, setTaskStatus, toggleTask, completeFollowUp, reopenFollowUp, rescheduleFollowUp,
-    updateSettings, updateProfile, setMembership, createBusiness, reload, signOut: async () => { await supabase.auth.signOut() },
+    updateSettings, updateProfile, setMembership, createBusiness, createPartner, reload, signOut: async () => { await supabase.auth.signOut() },
   }
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
