@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useData } from '../lib/data'
 import { visibleBusinesses } from '../lib/workspaces'
 import { Icon } from '../ui/Icon'
+import { BizSwitcher } from '../ui/BizSwitcher'
 import { YcSales } from '../workspaces/yc/Sales'
 import { YcFinder } from '../workspaces/yc/Finder'
 import { YcAssistant } from '../workspaces/yc/Assistant'
@@ -9,89 +10,6 @@ import { YcPipeline } from '../workspaces/yc/Pipeline'
 import { go } from '../lib/route'
 
 type ToolTab = 'leads' | 'review' | 'assistant' | 'sales'
-
-function UniversalMenu({ businessId, businessName, onChangeBusiness }: {
-  businessId: string | null
-  businessName?: string
-  onChangeBusiness: () => void
-}) {
-  const [open, setOpen] = useState(false)
-
-  const items = [
-    { label: 'Home', path: '/home' },
-    { label: 'Yogecreatives', path: '/w/yogecreatives/overview' },
-    { label: 'Yogeworks', path: '/w/yogeworks/overview' },
-    { label: 'White Label', path: '/w/white-label/pipeline' },
-    { label: 'Sales Machine', path: '/sales-machine' },
-  ]
-
-  return (
-    <div style={{ position: 'relative' }}>
-      <button className="chip-sw" onClick={() => setOpen(v => !v)} aria-expanded={open}>
-        <span className="av">{businessName?.[0] ?? 'S'}</span>
-        {businessName ? businessName + ' — Sales Machine' : 'Sales Machine'}
-        <span className="sw-chevron">⌄</span>
-      </button>
-
-      {open && (
-        <>
-          <button
-            aria-label="Close menu"
-            onClick={() => setOpen(false)}
-            style={{ position: 'fixed', inset: 0, zIndex: 20, background: 'transparent', border: 0 }}
-          />
-          <div
-            className="listcard"
-            style={{
-              position: 'absolute',
-              top: 'calc(100% + 8px)',
-              left: 0,
-              minWidth: 250,
-              zIndex: 30,
-              padding: 6,
-              boxShadow: '0 18px 45px rgba(0,0,0,.18)',
-            }}
-          >
-            {items.map(item => (
-              <button
-                key={item.label}
-                className="row"
-                style={{ width: '100%', border: 0, background: 'transparent', borderRadius: 10 }}
-                onClick={() => {
-                  setOpen(false)
-                  go(item.path)
-                }}
-              >
-                <span className="row-main">
-                  <span className="row-title">{item.label}</span>
-                  <span className="row-sub">{item.label === 'Sales Machine' ? 'Find, research, approve and sell' : 'Open workspace'}</span>
-                </span>
-                <Icon name="chevron" size={15} />
-              </button>
-            ))}
-
-            {businessId && (
-              <button
-                className="row"
-                style={{ width: '100%', border: 0, background: 'transparent', borderRadius: 10 }}
-                onClick={() => {
-                  setOpen(false)
-                  onChangeBusiness()
-                }}
-              >
-                <span className="row-main">
-                  <span className="row-title">Change Sales Machine business</span>
-                  <span className="row-sub">Keep working in Sales Machine</span>
-                </span>
-                <Icon name="chevron" size={15} />
-              </button>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
 
 export function SalesMachine() {
   const { businesses } = useData()
@@ -105,7 +23,7 @@ export function SalesMachine() {
       <div className="shell2 sales-machine-shell"><div className="page">
         <div className="wshead">
           <div>
-            <UniversalMenu businessId={null} onChangeBusiness={() => setBusinessId(null)} />
+            <BizSwitcher label="Sales Machine" current="sales-machine" />
             <p className="pagesub" style={{ marginTop: 8 }}>Sales Machine · one shared sales engine for every Yoge business.</p>
           </div>
         </div>
@@ -139,7 +57,7 @@ export function SalesMachine() {
     <div className="shell2 sales-machine-shell"><div className="page">
       <div className="wshead">
         <div>
-          <UniversalMenu businessId={business.id} businessName={business.name} onChangeBusiness={() => setBusinessId(null)} />
+          <BizSwitcher label={`${business.name} — Sales Machine`} current="sales-machine" />
           <p className="pagesub" style={{ marginTop: 8 }}>Sales Machine · leads and outreach stay with {business.name}.</p>
         </div>
       </div>
