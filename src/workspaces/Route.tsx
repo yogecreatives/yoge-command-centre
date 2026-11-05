@@ -7,6 +7,7 @@ import { WorkspaceShell, WL_TABS } from './Workspace'
 import { YcOverview } from './yc/Overview'
 import { YcSales } from './yc/Sales'
 import { YcFinder } from './yc/Finder'
+import { YcAssistant } from './yc/Assistant'
 import { YcTasks } from './yc/Tasks'
 import { YcPipeline } from './yc/Pipeline'
 import { YcProjects } from './yc/Projects'
@@ -70,10 +71,11 @@ export function WorkspaceRoute({ parts }: { parts: string[] }) {
   if (tab === 'notifications') page = <Inbox scope={slug} />
   else if (tab === 'sales') page = <YcSales bizId={biz.id} />
   else if (tab === 'finder') page = <YcFinder bizId={biz.id} />
+  else if (tab === 'assistant') page = <YcAssistant bizId={biz.id} />
   else if (tab === 'tasks') page = <YcTasks bizId={biz.id} />
   else if (tab === 'pipeline') page = <YcPipeline bizId={biz.id} />
   else if (tab === 'projects') page = <YcProjects bizId={biz.id} />
   else if (tab === 'more') page = sub === 'finance' ? <YcFinance bizId={biz.id} slug={slug} /> : sub === 'reports' ? <YcReports bizId={biz.id} slug={slug} /> : sub === 'contacts' ? <YcContacts bizId={biz.id} slug={slug} /> : sub === 'settings' ? <Settings scope={slug} /> : <YcMore slug={slug} name={biz.name} />
   else page = <YcOverview bizId={biz.id} businessName={biz.name} />
-  return <WorkspaceShell slug={slug} tab={['overview', 'sales', 'finder', 'tasks', 'pipeline', 'projects', 'more'].includes(tab) ? tab : 'overview'}>{page}</WorkspaceShell>
+  return <WorkspaceShell slug={slug} tab={['overview', 'sales', 'finder', 'assistant', 'tasks', 'pipeline', 'projects', 'more'].includes(tab) ? tab : 'overview'}>{page}</WorkspaceShell>
 }
