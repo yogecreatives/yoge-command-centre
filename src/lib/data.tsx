@@ -88,34 +88,43 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const m = failed.error.message
       throw new Error(/referrers|prospects|prospect_activities|income_entries|expenses/.test(m) ? 'The database needs the latest update. Run supabase/migration_002.sql and supabase/migration_003.sql in the Supabase SQL Editor, then reload. (' + m + ')' : m)
     }
-    // Replace state only after every query succeeded, so a failed load never wipes what is on screen.
-    setBusinesses((b.data ?? []) as Business[])
-    setProfile((me.data ?? null) as Profile | null)
+    const myProfile = (me.data ?? null) as Profile | null
+    const allBusinesses = (b.data ?? []) as Business[]
+    const myMemberships = (memberships.data ?? []) as WorkspaceMembership[]
+    const allowedBusinessIds = myProfile?.role === 'owner'
+      ? new Set(allBusinesses.filter(x => x.user_id === uid).map(x => x.id))
+      : new Set(myMemberships.filter(x => x.user_id === uid).map(x => x.business_id))
+    const scopedBusinesses = allBusinesses.filter(x => allowedBusinessIds.has(x.id))
+
+    setBusinesses(scopedBusinesses)
+    setProfile(myProfile)
     setTeamProfiles((profs.data ?? []) as Profile[])
-    setMemberships((memberships.data ?? []) as WorkspaceMembership[])
+    setMemberships(myMemberships)
     setDb({ tasks: t.data as Task[], follow_ups: f.data as FollowUp[], projects: p.data as Project[], ideas: i.data as Idea[], notifications: n.data as AppNotification[],
       referrers: rf.data as Referrer[], prospects: pr.data as Prospect[], prospect_activities: ac.data as Activity[], income_entries: inc.data as Income[], expenses: ex.data as Expense[] })
     setSettings((s.data ?? null) as Settings | null)
-  }, [])
+  }, [uid])
 
   const reload = useCallback(async () => {
     try { await load(); setError(null); setState('ready') }
     catch (e: any) { if (!loaded.current) { setError(e.message); setState('error') } else toast('Could not refresh: ' + e.message, 'error') }
   }, [load, toast])
 
-  // Initial load: make sure the account has its three workspaces, then fetch everything.
   useEffect(() => {
     let dead = false
     ;(async () => {
       try {
-        const { error: e } = await supabase.rpc('bootstrap_user')
-        if (e) throw new Error(e.message.includes('bootstrap_user') ? 'Database is not set up yet. Run supabase/schema.sql in the Supabase SQL Editor.' : e.message)
+        const { data: me } = await supabase.from('profiles').select('role').eq('user_id', uid).maybeSingle()
+        if (me?.role === 'owner') {
+          const { error: e } = await supabase.rpc('bootstrap_user')
+          if (e) throw new Error(e.message.includes('bootstrap_user') ? 'Database is not set up yet. Run supabase/schema.sql in the Supabase SQL Editor.' : e.message)
+        }
         await load()
         if (!dead) { loaded.current = true; setState('ready') }
       } catch (e: any) { if (!dead) { setError(e.message); setState('error') } }
     })()
     return () => { dead = true }
-  }, [load])
+  }, [load, uid])
 
   const upsertLocal = useCallback((table: TableKey, row: any) => {
     setDb(d => {
@@ -129,7 +138,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setDb(d => ({ ...d, [table]: (d[table] as any[]).filter(x => x.id !== id) }))
   }, [])
 
-  // Cross-device sync: other devices' changes (and server-created reminders) arrive live.
   useEffect(() => {
     if (state !== 'ready') return
     const ch = supabase.channel('yoge-sync-' + uid)
@@ -144,9 +152,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     ch.on('postgres_changes', { event: '*', schema: 'public', table: 'user_settings' }, (p: any) => { if (p.new) setSettings(p.new) })
     ch.subscribe()
     return () => { supabase.removeChannel(ch) }
-  }, [state, uid, upsertLocal, removeLocal])
+  }, [state, uid, upsertLocal, removeLocal, load])
 
-  // Re-sync when the connection returns or the app comes back to the foreground.
   useEffect(() => {
     const on = () => { setOnline(true); reload() }
     const off = () => setOnline(false)
@@ -192,7 +199,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const setTaskStatus = async (t: Task, s: Status) => {
     await update('tasks', t.id, { status: s, completed_at: s === 'completed' ? new Date().toISOString() : null })
   }
-  // Ticking a finished task reopens it as Pending (use the status control to set In progress).
   const toggleTask = async (t: Task) => {
     if (t.status !== 'completed') return setTaskStatus(t, 'completed')
     return setTaskStatus(t, 'pending')
@@ -249,13 +255,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setSettings(data as Settings)
   }, undefined)
 
-  // First sign-in: adopt this device's time zone for reminder timing (changeable in Settings).
   useEffect(() => {
     if (state === 'ready' && settings && !settings.timezone_confirmed) {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
       if (tz) updateSettings({ timezone: tz, timezone_confirmed: true })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, settings?.timezone_confirmed])
 
   const bizMap = useMemo(() => new Map(businesses.map(b => [b.id, b])), [businesses])
