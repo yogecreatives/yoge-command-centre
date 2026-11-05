@@ -15,14 +15,14 @@ const classificationLabel: Record<Classification, string> = {
   outdated: 'Outdated',
 }
 
-export function YcSales({ bizId }: { bizId: string }) {
+export function YcSales({ bizId, businessName = 'Yogecreatives' }: { bizId: string; businessName?: string }) {
   const { prospects, settings, update, create } = useData()
   const open = useEditor()
   const today = todayISO()
   const [filter, setFilter] = useState<'review' | 'approved' | 'all'>('review')
   const leads = useMemo(() => prospects.filter(p => p.business_id === bizId), [prospects, bizId])
-  const us = useMemo(() => leads.filter(p => ['us', 'usa', 'united states'].includes((p.country || '').toLowerCase())), [leads])
-  const goal = settings?.direct_us_goal ?? 3
+  const us = leads
+  const goal = businessName === 'Yogecreatives' ? (settings?.direct_us_goal ?? 3) : null
   const won = us.filter(p => p.stage === 'won').length
   const pending = us.filter(p => p.review_status === 'pending')
   const approved = us.filter(p => p.review_status === 'approved')
@@ -55,12 +55,12 @@ export function YcSales({ bizId }: { bizId: string }) {
   return (
     <>
       <div className="wshead" style={{ marginBottom: 6 }}>
-        <div><h1 className="pagetitle">Sales</h1><p className="pagesub">Quality-first pipeline · goal: {goal} direct US clients</p></div>
+        <div><h1 className="pagetitle">{businessName} Sales</h1><p className="pagesub">Quality-first pipeline · {goal !== null ? `goal: ${goal} direct clients` : 'shared sales pipeline'}</p></div>
         <button className="btn primary" onClick={() => go('/w/yogecreatives/pipeline')}>Open pipeline</button>
       </div>
 
       <div className="kstats four">
-        <div><b>{won}/{goal}</b><span>US clients won</span></div>
+        <div><b>{won}/{goal}</b><span>Clients won</span></div>
         <div><b>{pending.length}</b><span>Waiting for review</span></div>
         <div><b>{approved.length}</b><span>Approved prospects</span></div>
         <div><b>{proposals.length}</b><span>Proposal / negotiation</span></div>
@@ -82,12 +82,12 @@ export function YcSales({ bizId }: { bizId: string }) {
       <div className="tabrow" style={{ marginTop: 14 }}>
         <button className={filter === 'review' ? 'on' : ''} onClick={() => setFilter('review')}>Review · {pending.length}</button>
         <button className={filter === 'approved' ? 'on' : ''} onClick={() => setFilter('approved')}>Approved · {approved.length}</button>
-        <button className={filter === 'all' ? 'on' : ''} onClick={() => setFilter('all')}>All US · {us.length}</button>
+        <button className={filter === 'all' ? 'on' : ''} onClick={() => setFilter('all')}>All · {us.length}</button>
       </div>
 
       {!us.length && (
         <div className="deck-empty">
-          No US prospects are assigned to Yogecreatives yet. Import your first small batch from the Pipeline.
+          No prospects are assigned to this business yet. Import your first small batch from the Pipeline.
           <div style={{ marginTop: 12 }}><button className="btn" onClick={() => go('/w/yogecreatives/pipeline')}>Go to Pipeline → Import CSV</button></div>
         </div>
       )}
