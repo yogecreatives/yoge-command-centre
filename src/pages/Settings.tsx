@@ -145,7 +145,7 @@ export function Settings({ scope }: { scope?: string } = {}) {
 
 
 function AdminDashboard() {
-  const { businesses, teamProfiles, memberships, updateProfile, setMembership, create } = useData()
+  const { businesses, teamProfiles, memberships, updateProfile, setMembership, createBusiness } = useData()
   const toast = useToast()
   const partners = teamProfiles.filter(p => p.role !== 'owner')
   const [selectedId, setSelectedId] = useState(partners[0]?.user_id ?? '')
@@ -220,7 +220,7 @@ function AdminDashboard() {
           <button className="btn primary" disabled={!newWorkspace.trim()} onClick={async () => {
             const name = newWorkspace.trim()
             const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-            const res = await create('businesses', { name, slug, description: '', symbol: '◈', sort_order: businesses.length + 1 })
+            const res = await createBusiness({ name, slug, description: '', symbol: '◈', sort_order: businesses.length + 1 })
             if (res) { setNewWorkspace(''); toast(name + ' workspace created') }
           }}>+</button>
         </div>
