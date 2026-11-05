@@ -5,6 +5,7 @@ import { go, useRoute } from '../lib/route'
 import { businessRoute } from '../lib/workspaces'
 import { WorkspaceShell, WL_TABS } from './Workspace'
 import { YcOverview } from './yc/Overview'
+import { YcSales } from './yc/Sales'
 import { YcTasks } from './yc/Tasks'
 import { YcPipeline } from './yc/Pipeline'
 import { YcProjects } from './yc/Projects'
@@ -66,10 +67,11 @@ export function WorkspaceRoute({ parts }: { parts: string[] }) {
 
   let page
   if (tab === 'notifications') page = <Inbox scope={slug} />
+  else if (tab === 'sales') page = <YcSales bizId={biz.id} />
   else if (tab === 'tasks') page = <YcTasks bizId={biz.id} />
   else if (tab === 'pipeline') page = <YcPipeline bizId={biz.id} />
   else if (tab === 'projects') page = <YcProjects bizId={biz.id} />
   else if (tab === 'more') page = sub === 'finance' ? <YcFinance bizId={biz.id} slug={slug} /> : sub === 'reports' ? <YcReports bizId={biz.id} slug={slug} /> : sub === 'contacts' ? <YcContacts bizId={biz.id} slug={slug} /> : sub === 'settings' ? <Settings scope={slug} /> : <YcMore slug={slug} name={biz.name} />
   else page = <YcOverview bizId={biz.id} businessName={biz.name} />
-  return <WorkspaceShell slug={slug} tab={['overview', 'tasks', 'pipeline', 'projects', 'more'].includes(tab) ? tab : 'overview'}>{page}</WorkspaceShell>
+  return <WorkspaceShell slug={slug} tab={['overview', 'sales', 'tasks', 'pipeline', 'projects', 'more'].includes(tab) ? tab : 'overview'}>{page}</WorkspaceShell>
 }
