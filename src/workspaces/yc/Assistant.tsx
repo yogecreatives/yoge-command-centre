@@ -89,8 +89,27 @@ export function YcAssistant({ bizId, businessName = 'Yogecreatives' }: { bizId: 
 
   const saveDraft = async () => {
     if (!selected || !draft.trim()) return
-    await update('prospects', selected.id, { outreach_draft: draft.trim(), outreach_channel: 'email' })
-    setStatus('Draft saved.')
+    await update('prospects', selected.id, { outreach_draft: draft.trim(), outreach_channel: 'email', outreach_approved_at: null })
+    setStatus('Draft saved. It still needs your approval before outreach.')
+  }
+
+  const approveDraft = async () => {
+    if (!selected || !draft.trim()) return
+    const ok = await update('prospects', selected.id, {
+      outreach_draft: draft.trim(),
+      outreach_channel: 'email',
+      outreach_approved_at: new Date().toISOString(),
+    })
+    if (ok) {
+      await create('prospect_activities', { prospect_id: selected.id, kind: 'approval', note: 'Outreach draft approved by user.' })
+      setStatus('Outreach approved. Ready for your manual send.')
+    }
+  }
+
+  const revokeApproval = async () => {
+    if (!selected) return
+    const ok = await update('prospects', selected.id, { outreach_approved_at: null })
+    if (ok) setStatus('Outreach approval removed.')
   }
 
   return (
@@ -146,9 +165,14 @@ export function YcAssistant({ bizId, businessName = 'Yogecreatives' }: { bizId: 
           <div className="sectionlabel" style={{ marginTop: 0 }}>3 · Review before sending</div>
           <textarea value={draft} onChange={e => setDraft(e.target.value)} rows={9} />
           <div className="act">
-            <button className="mini rep" onClick={saveDraft}>Save draft</button>
+            <button className="mini" onClick={saveDraft}>Save draft</button>
+            {!selected.outreach_approved_at
+              ? <button className="mini rep" onClick={approveDraft}>Approve for outreach</button>
+              : <button className="mini" onClick={revokeApproval}>Revoke approval</button>}
           </div>
-          <div className="row-sub" style={{ padding: '8px 0 0' }}>Nothing is sent automatically. You decide whether the message is good enough to send.</div>
+          <div className="row-sub" style={{ padding: '8px 0 0' }}>
+            {selected.outreach_approved_at ? '✓ Approved for outreach · You still send manually.' : 'Nothing is sent automatically. Approve the draft only when you are happy with the wording.'}
+          </div>
         </div>
       )}
 
