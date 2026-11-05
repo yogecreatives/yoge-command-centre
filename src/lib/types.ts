@@ -9,6 +9,8 @@ export type IdeaStatus = 'new' | 'exploring' | 'converted' | 'archived'
 
 interface Base { id: string; user_id: string; created_at: string; updated_at: string }
 export interface Business extends Base { slug: string; name: string; description: string | null; symbol: string | null; sort_order: number }
+export interface Profile { id: string; user_id: string; full_name: string | null; email: string | null; avatar_url: string | null; position: string | null; role: 'owner' | 'member'; created_at: string; updated_at: string }
+export interface WorkspaceMembership { id: string; business_id: string; user_id: string; role: 'member' | 'manager'; created_at: string }
 export interface Task extends Base {
   business_id: string; project_id: string | null; title: string; category: string | null
   task_type: TaskType; priority: Priority; status: Status; due_date: string | null
