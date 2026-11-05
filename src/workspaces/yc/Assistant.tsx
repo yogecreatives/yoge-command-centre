@@ -83,7 +83,7 @@ export function YcAssistant({ bizId, businessName = 'Yogecreatives' }: { bizId: 
 
   const copyPrompt = async () => {
     if (!selected) return
-    await navigator.clipboard?.writeText(buildPrompt(selected))
+    await navigator.clipboard?.writeText(buildPrompt(selected, businessName))
     setStatus('Prompt copied.')
   }
 
