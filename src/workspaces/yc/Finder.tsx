@@ -8,12 +8,6 @@ import { go } from '../../lib/route'
 type ReviewStatus = 'pending' | 'approved' | 'hold' | 'rejected'
 type Classification = 'unreviewed' | 'good' | 'needs_improvement' | 'outdated'
 
-const usCountries = ['us', 'usa', 'united states', 'united states of america']
-
-function isUs(p: Prospect) {
-  return usCountries.includes((p.country || '').trim().toLowerCase())
-}
-
 function researchScore(p: Prospect) {
   return [
     !!p.website,
@@ -33,6 +27,7 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
   const [q, setQ] = useState('')
   const [queue, setQueue] = useState<'review' | 'research' | 'approved' | 'all'>('review')
   const [sort, setSort] = useState<'priority' | 'newest' | 'name'>('priority')
+  const [researching, setResearching] = useState<string | null>(null)
 
   const leads = useMemo(() => prospects.filter(p => p.business_id === bizId), [prospects, bizId])
 
@@ -62,6 +57,32 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
     else rows.sort((a, b) => a.agency_name.localeCompare(b.agency_name))
     return rows
   }, [leads, q, queue, sort])
+
+  const research = async (p: Prospect) => {
+    if (!p.website) return
+    setResearching(p.id)
+    try {
+      const res = await fetch('/api/research?url=' + encodeURIComponent(p.website))
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Research failed')
+      const ok = await update('prospects', p.id, {
+        google_rating: p.google_rating,
+        google_review_count: p.google_review_count,
+        wix_detected: data.wix_detected,
+        wix_evidence: data.wix_evidence,
+        website_screenshot_url: data.screenshot_url,
+        research_summary: data.summary,
+        research_data: data,
+      })
+      if (ok) {
+        await create('prospect_activities', { prospect_id: p.id, kind: 'research', note: 'Website research completed' })
+      }
+    } catch (e) {
+      window.alert((e as Error).message || 'Research failed')
+    } finally {
+      setResearching(null)
+    }
+  }
 
   const setClassification = async (p: Prospect, value: Classification) => {
     await update('prospects', p.id, { website_classification: value })
@@ -102,7 +123,7 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
       <div className="listcard" style={{ marginTop: 14 }}>
         <div className="sectionlabel" style={{ marginTop: 0 }}>Finder workflow</div>
         <div className="row"><div className="row-main"><div className="row-title">1 · Bring in a small batch</div><div className="row-sub">Use your Google Maps scraper / CSV. Keep quality higher than volume.</div></div></div>
-        <div className="row"><div className="row-main"><div className="row-title">2 · Research the evidence</div><div className="row-sub">Website, Google rating/reviews, Wix evidence, screenshot and notes.</div></div></div>
+        <div className="row"><div className="row-main"><div className="row-title">2 · Research the evidence</div><div className="row-sub">Website, Wix detection, screenshot and notes. Google rating/reviews stay from the source data when available.</div></div></div>
         <div className="row"><div className="row-main"><div className="row-title">3 · You classify the website</div><div className="row-sub">Good · Needs improvement · Outdated. Finder never makes this decision for you.</div></div></div>
         <div className="row"><div className="row-main"><div className="row-title">4 · Approve the prospects worth contacting</div><div className="row-sub">Only approved prospects move into the sales workflow.</div></div></div>
       </div>
@@ -131,7 +152,7 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
       )}
 
       <div className="group">
-        {list.map(p => <FinderCard key={p.id} p={p} today={today} onOpen={() => open('lead', p)} onClassify={setClassification} onPriority={setPriority} onReview={review} />)}
+        {list.map(p => <FinderCard key={p.id} p={p} today={today} researching={researching === p.id} onResearch={() => research(p)} onOpen={() => open('lead', p)} onClassify={setClassification} onPriority={setPriority} onReview={review} />)}
       </div>
 
       {!!leads.length && !list.length && <div className="deck-empty">Nothing matches this Finder queue.</div>}
@@ -149,9 +170,11 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
   )
 }
 
-function FinderCard({ p, today, onOpen, onClassify, onPriority, onReview }: {
+function FinderCard({ p, today, researching, onResearch, onOpen, onClassify, onPriority, onReview }: {
   p: Prospect
   today: string
+  researching: boolean
+  onResearch: () => void
   onOpen: () => void
   onClassify: (p: Prospect, value: Classification) => void
   onPriority: (p: Prospect, value: 'low' | 'medium' | 'high') => void
@@ -166,7 +189,7 @@ function FinderCard({ p, today, onOpen, onClassify, onPriority, onReview }: {
       <div className="rt">
         <button className="row-main" onClick={onOpen}>
           <div className="row-title">{p.agency_name}</div>
-          <div className="row-sub">{[p.city, p.category, p.source].filter(Boolean).join(' · ') || 'US prospect'}</div>
+          <div className="row-sub">{[p.city, p.category, p.source].filter(Boolean).join(' · ') || 'Prospect'}</div>
           <div className="row-sub">
             {[p.google_rating !== null ? p.google_rating + '★' : null, p.google_review_count !== null ? p.google_review_count + ' reviews' : null, p.wix_detected === true ? 'Wix detected' : p.wix_detected === false ? 'Not Wix' : null].filter(Boolean).join(' · ') || 'Research not added yet'}
           </div>
@@ -188,6 +211,7 @@ function FinderCard({ p, today, onOpen, onClassify, onPriority, onReview }: {
 
       <div className="act">
         {website && <a className="mini" href={website} target="_blank" rel="noreferrer">Website</a>}
+        {website && <button className="mini rep" onClick={onResearch} disabled={researching}>{researching ? 'Researching…' : 'Research website'}</button>}
         <button className={'mini ' + (classification === 'good' ? 'rep' : '')} onClick={() => onClassify(p, 'good')}>Good</button>
         <button className={'mini ' + (classification === 'needs_improvement' ? 'rep' : '')} onClick={() => onClassify(p, 'needs_improvement')}>Needs improvement</button>
         <button className={'mini ' + (classification === 'outdated' ? 'rep' : '')} onClick={() => onClassify(p, 'outdated')}>Outdated</button>
