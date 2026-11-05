@@ -49,7 +49,7 @@ export function WorkspaceRoute({ parts }: { parts: string[] }) {
     if (!biz) return <div className="shell2"><div className="deck-empty">White Label workspace not found. Reload the app.</div></div>
     const wlTab = tab === 'tasks' ? 'tasks' : 'pipeline'
     return <WorkspaceShell slug={slug} tab={wlTab} tabs={WL_TABS}>
-      {wlTab === 'tasks' ? <YcTasks bizId={biz.id} /> : <Pipeline embedded />}
+      {wlTab === 'tasks' ? <YcTasks bizId={biz.id} /> : <Pipeline />}
     </WorkspaceShell>
   }
 
