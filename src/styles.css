@@ -296,3 +296,6 @@ a.btn{text-decoration:none}label.btn{cursor:pointer}
 .pagesub{color:var(--muted);margin:0 0 18px;font-size:14px}
 .grouphd{display:flex;justify-content:space-between;align-items:baseline;margin:18px 6px 8px}.grouphd b{font-size:15px}.grouphd span{font-size:12px;color:var(--muted)}
 @media(min-width:900px){.shell2{padding-top:36px}.pillnav{bottom:24px}}
+
+.home-shell{padding-bottom:32px}
+@media(min-width:900px){.home-shell{padding-bottom:36px}}
