@@ -38,9 +38,6 @@ function Gate() {
   return <DataProvider><EditorProvider><Shell /></EditorProvider></DataProvider>
 }
 
-const TABS: [string, string, string][] = [['/home', 'Home', 'today'], ['/tasks', 'Tasks', 'tasks'], ['/pipeline', 'Pipeline', 'send'], ['/calendar', 'Calendar', 'calendar'], ['/more', 'More', 'more']]
-const MORE_ROUTES = ['/more', '/ideas', '/inbox', '/settings', '/followups', '/projects', '/partners', '/money']
-
 function Shell() {
   const { state, error, online, busy, notifications, businesses, reload } = useData()
   const open = useEditor()
@@ -54,7 +51,6 @@ function Shell() {
   )
 
   const unread = notifications.filter(n => !n.read_at).length
-  const activeTab = (p: string) => (p === '/more' ? MORE_ROUTES.includes(path) || path.startsWith('/b/') : path === p)
   const parts = path.split('/').filter(Boolean)
   if (path === '/home' || path === '/') return <Home />
   if (parts[0] === 'w') return <WorkspaceRoute parts={parts} />
@@ -92,13 +88,6 @@ function Shell() {
         <div className={`sync ${busy ? 'on' : ''}`} aria-live="polite">{busy ? 'Saving…' : ''}</div>
       </main>
       <button className="fab" onClick={() => open('new')} aria-label="Add new"><Icon name="plus" size={26} /></button>
-      <nav className="tabbar">
-        {TABS.map(([to, label, icon]) => (
-          <button key={to} className={activeTab(to) ? 'on' : ''} onClick={() => go(to)}>
-            <Icon name={icon} size={24} /><span>{label}</span>{to === '/more' && unread > 0 && <b />}
-          </button>
-        ))}
-      </nav>
       <button hidden onClick={reload} />
     </div>
   )
