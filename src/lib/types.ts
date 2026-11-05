@@ -37,7 +37,7 @@ export interface AppNotification {
 export interface Settings {
   id: string; user_id: string; timezone: string; timezone_confirmed: boolean
   remind_days_before: number; remind_tasks: boolean; remind_followups: boolean; remind_projects: boolean; remind_overdue: boolean
-  sender_name: string; daily_new_limit: number; outreach_gaps: number[]; skip_weekends: boolean
+  sender_name: string; daily_new_limit: number; outreach_gaps: number[]; skip_weekends: boolean; direct_us_goal: number
   outreach_templates: Templates; project_task_template: StarterTask[]
 }
 
@@ -48,6 +48,11 @@ export interface Prospect extends Base {
   next_action_date: string | null; last_contacted_at: string | null; snooze_until: string | null
   test_project_value: number | null; notes: string | null
   city: string | null; category: string | null; next_action: string | null; lost_reason: string | null; won_project_id: string | null
+  review_status: 'pending' | 'approved' | 'hold' | 'rejected'; website_classification: 'unreviewed' | 'good' | 'needs_improvement' | 'outdated'
+  priority: 'low' | 'medium' | 'high'; google_rating: number | null; google_review_count: number | null; wix_detected: boolean | null
+  wix_evidence: string | null; website_screenshot_url: string | null; research_summary: string | null; research_data: Record<string, unknown>
+  outreach_draft: string | null; outreach_channel: 'email' | 'facebook' | 'instagram' | 'linkedin' | 'other' | null
+  outreach_approved_at: string | null; decision_notes: string | null
 }
 export interface Activity { id: string; user_id: string; prospect_id: string; kind: 'email_sent' | 'dm_sent' | 'replied' | 'call' | 'note' | 'stage_change'; note: string | null; created_at: string }
 export interface Income extends Base { business_id: string | null; source: string; amount: number; entry_date: string; status: 'received' | 'expected'; notes: string | null }
