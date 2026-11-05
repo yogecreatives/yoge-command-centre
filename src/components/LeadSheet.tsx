@@ -12,10 +12,13 @@ import { Prospect, Stage } from '../lib/types'
 const nz = (s: string) => (s.trim() || null)
 
 /** Yogecreatives lead: add/edit, log email or DM outreach, record replies, and turn a won lead into a project. */
-export function LeadSheet({ item, onClose }: { item?: Prospect; onClose: () => void }) {
-  const { prospects, activities, businesses, create, update, remove } = useData()
+export function LeadSheet({ item, defaults, onClose }: { item?: Prospect; defaults?: Record<string, any>; onClose: () => void }) {
+  const { prospects, activities, businesses, bizById, create, update, remove } = useData()
   const open = useEditor(); const toast = useToast()
-  const yc = businesses.find(b => b.slug === 'yogecreatives')!
+  // New leads inherit the active workspace. Existing leads keep their stored business.
+  const workspaceBusiness = bizById(defaults?.business_id) ?? businesses.find(b => b.slug === 'yogecreatives')
+  const leadBusinessId = item?.business_id ?? workspaceBusiness?.id
+  if (!leadBusinessId) return null
   const [f, setF] = useState({
     agency_name: item?.agency_name ?? '', website: item?.website ?? '', contact_name: item?.contact_name ?? '', email: item?.email ?? '', phone: item?.phone ?? '',
     country: item?.country ?? '', city: item?.city ?? '', category: item?.category ?? '', source: item?.source ?? '', notes: item?.notes ?? '',
@@ -23,13 +26,13 @@ export function LeadSheet({ item, onClose }: { item?: Prospect; onClose: () => v
   })
   const [err, setErr] = useState(''); const [saving, setSaving] = useState(false); const [confirm, setConfirm] = useState(false); const [dupOk, setDupOk] = useState(false)
   const set = (k: string, v: string) => setF(s => ({ ...s, [k]: v }))
-  const mine = prospects.filter(p => p.business_id === yc.id)
+  const mine = prospects.filter(p => p.business_id === leadBusinessId)
   const dup = findDuplicate(mine, f.email, f.website, item?.id) ?? mine.find(p => p.id !== item?.id && !f.email && !f.website && p.agency_name.trim().toLowerCase() === f.agency_name.trim().toLowerCase())
   const history = item ? activities.filter(a => a.prospect_id === item.id) : []
   const today = todayISO()
 
   const row = () => ({
-    business_id: yc.id, agency_name: f.agency_name.trim(), website: f.website.trim() ? normUrl(f.website.trim()) : null, contact_name: nz(f.contact_name), email: nz(f.email),
+    business_id: leadBusinessId, agency_name: f.agency_name.trim(), website: f.website.trim() ? normUrl(f.website.trim()) : null, contact_name: nz(f.contact_name), email: nz(f.email),
     phone: nz(f.phone), country: nz(f.country), city: nz(f.city), category: nz(f.category), source: nz(f.source), notes: nz(f.notes), stage: f.stage,
     next_action: nz(f.next_action), next_action_date: f.next_action_date || null, lost_reason: f.stage === 'lost' ? nz(f.lost_reason) : null,
   })
@@ -51,7 +54,7 @@ export function LeadSheet({ item, onClose }: { item?: Prospect; onClose: () => v
   const toProject = () => {
     if (!item) return
     onClose()
-    open('project', undefined, { business_id: yc.id, name: item.agency_name, client_name: item.contact_name || item.agency_name, client_email: item.email, client_phone: item.phone,
+    open('project', undefined, { business_id: leadBusinessId, name: item.agency_name, client_name: item.contact_name || item.agency_name, client_email: item.email, client_phone: item.phone,
       afterSave: (pr: { id: string }) => update('prospects', item.id, { won_project_id: pr.id, stage: 'won' }) })
   }
 
