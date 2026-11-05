@@ -6,10 +6,10 @@ import { Prospect } from '../../lib/types'
 const DEFAULT_OLLAMA = 'http://localhost:11434'
 const DEFAULT_MODEL = 'llama3.2:3b'
 
-function buildPrompt(p: Prospect) {
+function buildPrompt(p: Prospect, businessName: string) {
   return [
-    'You are the sales assistant for Yogecreatives, a Wix Studio web design agency.',
-    'Write a short, human, non-pushy first outreach message to this US business.',
+    'You are the sales assistant for ' + businessName + '.',
+    'Write a short, human, non-pushy first outreach message to this business.',
     'Do not claim the website is bad. Do not invent facts. Use only the evidence supplied.',
     'Mention one specific relevant observation. Keep it conversational. No generic marketing fluff.',
     'Do not mention AI. End with a simple question.',
@@ -30,13 +30,13 @@ function buildPrompt(p: Prospect) {
   ].join('\n')
 }
 
-function fallbackDraft(p: Prospect) {
+function fallbackDraft(p: Prospect, businessName: string) {
   const name = p.agency_name || 'there'
   const observation = p.research_summary || (p.wix_detected ? 'I noticed your site is built on Wix.' : 'I came across your website while looking at businesses in your area.')
-  return 'Hi ' + name + ',\n\nI came across your business and had a look at your website. ' + observation + ' I work with Yogecreatives, designing and developing Wix Studio websites for businesses.\n\nWould you be open to a quick chat about the site?'
+  return 'Hi ' + name + ',\n\nI came across your business and had a look at your website. ' + observation + ' I work with ' + businessName + ', helping businesses with their digital presence.\n\nWould you be open to a quick chat about the site?'
 }
 
-export function YcAssistant({ bizId }: { bizId: string }) {
+export function YcAssistant({ bizId, businessName = 'Yogecreatives' }: { bizId: string; businessName?: string }) {
   const { prospects, update, create } = useData()
   const open = useEditor()
   const [selectedId, setSelectedId] = useState('')
@@ -46,7 +46,7 @@ export function YcAssistant({ bizId }: { bizId: string }) {
   const [status, setStatus] = useState('')
 
   const approved = useMemo(() => prospects
-    .filter(p => p.business_id === bizId && ['us', 'usa', 'united states'].includes((p.country || '').toLowerCase()) && p.review_status === 'approved')
+    .filter(p => p.business_id === bizId && p.review_status === 'approved')
     .sort((a, b) => a.agency_name.localeCompare(b.agency_name)), [prospects, bizId])
 
   const selected = approved.find(p => p.id === selectedId) || approved[0] || null
@@ -60,7 +60,7 @@ export function YcAssistant({ bizId }: { bizId: string }) {
   const generate = async () => {
     if (!selected) return
     setStatus('Generating with local Ollama…')
-    const prompt = buildPrompt(selected)
+    const prompt = buildPrompt(selected, businessName)
     try {
       const response = await fetch(endpoint.replace(/\/$/, '') + '/api/generate', {
         method: 'POST',
@@ -76,7 +76,7 @@ export function YcAssistant({ bizId }: { bizId: string }) {
       await create('prospect_activities', { prospect_id: selected.id, kind: 'research', note: 'AI Sales Assistant generated an outreach draft.' })
       setStatus('Draft generated and saved to the prospect.')
     } catch (e) {
-      setDraft(fallbackDraft(selected))
+      setDraft(fallbackDraft(selected, businessName))
       setStatus('Local Ollama is not reachable. A safe fallback draft was created; connect Ollama to generate with AI.')
     }
   }
@@ -105,7 +105,7 @@ export function YcAssistant({ bizId }: { bizId: string }) {
       <div className="listcard">
         <div className="sectionlabel" style={{ marginTop: 0 }}>1 · Choose an approved prospect</div>
         <select className="pill" value={selected?.id || ''} onChange={e => { setSelectedId(e.target.value); setDraft(''); setStatus('') }}>
-          {!approved.length && <option value="">No approved US prospects</option>}
+          {!approved.length && <option value="">No approved prospects</option>}
           {approved.map(p => <option key={p.id} value={p.id}>{p.agency_name} · {p.city || 'US'}</option>)}
         </select>
         {selected && (
