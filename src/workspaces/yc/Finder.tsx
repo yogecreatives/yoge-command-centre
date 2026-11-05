@@ -26,7 +26,7 @@ function researchScore(p: Prospect) {
   ].filter(Boolean).length
 }
 
-export function YcFinder({ bizId }: { bizId: string }) {
+export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: string; businessName?: string }) {
   const { prospects, update, create } = useData()
   const open = useEditor()
   const today = todayISO()
@@ -34,7 +34,7 @@ export function YcFinder({ bizId }: { bizId: string }) {
   const [queue, setQueue] = useState<'review' | 'research' | 'approved' | 'all'>('review')
   const [sort, setSort] = useState<'priority' | 'newest' | 'name'>('priority')
 
-  const leads = useMemo(() => prospects.filter(p => p.business_id === bizId && isUs(p)), [prospects, bizId])
+  const leads = useMemo(() => prospects.filter(p => p.business_id === bizId), [prospects, bizId])
 
   const counts = useMemo(() => ({
     review: leads.filter(p => p.review_status === 'pending').length,
@@ -87,13 +87,13 @@ export function YcFinder({ bizId }: { bizId: string }) {
       <div className="wshead" style={{ marginBottom: 6 }}>
         <div>
           <h1 className="pagetitle">YogeStudio Finder</h1>
-          <p className="pagesub">Find small batches of quality US prospects. Research first. You decide the pitch.</p>
+          <p className="pagesub">Find small batches of quality prospects for {businessName}. Research first. You decide the pitch.</p>
         </div>
         <button className="btn" onClick={() => go('/w/yogecreatives/pipeline')}>Import leads</button>
       </div>
 
       <div className="kstats four">
-        <div><b>{leads.length}</b><span>US prospects</span></div>
+        <div><b>{leads.length}</b><span>Prospects</span></div>
         <div><b>{counts.review}</b><span>Waiting for review</span></div>
         <div><b>{counts.research}</b><span>Need research</span></div>
         <div><b>{counts.approved}</b><span>Approved</span></div>
@@ -125,7 +125,7 @@ export function YcFinder({ bizId }: { bizId: string }) {
 
       {!leads.length && (
         <div className="deck-empty">
-          No US prospects yet. Import a small CSV batch from Pipeline.
+          No prospects yet. Import a small CSV batch from Pipeline.
           <div style={{ marginTop: 12 }}><button className="btn" onClick={() => go('/w/yogecreatives/pipeline')}>Open Pipeline → Import CSV</button></div>
         </div>
       )}
