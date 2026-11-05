@@ -10,14 +10,14 @@ import { Income } from '../lib/types'
 
 const f = (n: number) => Math.round(n).toLocaleString()
 
-export function IncomeForm({ item, onClose }: { item?: Income; onClose: () => void }) {
+export function IncomeForm({ item, bizId, onClose }: { item?: Income; bizId?: string; onClose: () => void }) {
   const { create, update, remove, bizById, businesses } = useData(); const toast = useToast()
   const [v, setV] = useState({ source: item?.source ?? 'Wix partner commission', amount: item ? String(item.amount) : '', date: item?.entry_date ?? todayISO(), status: item?.status ?? 'received', notes: item?.notes ?? '' })
   const [err, setErr] = useState(''); const [confirm, setConfirm] = useState(false)
   const set = (k: string, x: string) => setV(s => ({ ...s, [k]: x }))
   const save = async () => {
     if (!v.source.trim()) return setErr('Add a source.'); if (!v.amount || isNaN(Number(v.amount)) || Number(v.amount) < 0) return setErr('Enter the amount as a number.')
-    const row = { source: v.source.trim(), amount: Number(v.amount), entry_date: v.date, status: v.status, notes: v.notes.trim() || null, business_id: item?.business_id ?? businesses.find(b => b.slug === 'yogecreatives')?.id ?? null }
+    const row = { source: v.source.trim(), amount: Number(v.amount), entry_date: v.date, status: v.status, notes: v.notes.trim() || null, business_id: item?.business_id ?? bizId ?? businesses.find(b => b.slug === 'yogecreatives')?.id ?? null }
     if (await (item ? update('income_entries', item.id, row) : create('income_entries', row))) { toast('Saved'); onClose() }
   }
   void bizById
