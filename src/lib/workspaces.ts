@@ -13,4 +13,6 @@ export const businessRoute = (slug: string) =>
     ? '/w/yogecreatives/overview'
     : slug === 'white-label'
       ? '/w/white-label/pipeline'
-      : '/b/' + slug
+      : slug === 'yogeworks'
+        ? '/w/yogeworks/overview'
+        : '/b/' + slug
