@@ -13,7 +13,7 @@ import { Templates } from '../lib/types'
 const IMPORT_KEY = 'yoge_v2_imported'
 const BIZ_SLUGS = ['white-label', 'yogeworks', 'yogecreatives', 'yogefolio', 'other']
 
-export function Settings({ scope }: { scope?: 'yc' } = {}) {
+export function Settings({ scope }: { scope?: string } = {}) {
   const { settings, updateSettings, email, signOut, online, businesses, createMany, referrers, prospects, projects, income, reload } = useData()
   const toast = useToast()
   const [raw, setRaw] = useState('')
@@ -74,7 +74,7 @@ export function Settings({ scope }: { scope?: 'yc' } = {}) {
 
   return (
     <>
-      <button className="backlink" onClick={() => go(scope ? '/w/yogecreatives/more' : '/home')}><Icon name="back" size={18} />Today</button>
+      <button className="backlink" onClick={() => go(scope ? '/w/' + scope + '/more' : '/home')}><Icon name="back" size={18} />Today</button>
       <header className="large"><h1>Settings</h1></header>
       <section className="section"><div className="section-title"><span>Appearance</span></div>
         <Segmented value={theme} onChange={v => { setThemeState(v); setTheme(v) }} options={[['light', 'Light'], ['dark', 'Dark'], ['auto', 'Auto']]} />
