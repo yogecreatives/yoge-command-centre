@@ -5,14 +5,15 @@ import { Icon } from '../ui/Icon'
 import { YcSales } from '../workspaces/yc/Sales'
 import { YcFinder } from '../workspaces/yc/Finder'
 import { YcAssistant } from '../workspaces/yc/Assistant'
+import { YcPipeline } from '../workspaces/yc/Pipeline'
 
-type ToolTab = 'sales' | 'finder' | 'assistant'
+type ToolTab = 'leads' | 'review' | 'assistant' | 'sales'
 
 export function SalesMachine() {
   const { businesses } = useData()
   const list = visibleBusinesses(businesses)
   const [businessId, setBusinessId] = useState<string | null>(null)
-  const [tab, setTab] = useState<ToolTab>('sales')
+  const [tab, setTab] = useState<ToolTab>('leads')
   const business = list.find(b => b.id === businessId) ?? null
 
   if (!business) {
@@ -64,13 +65,15 @@ export function SalesMachine() {
       </div>
 
       <div className="tabrow" style={{ marginTop: 8 }}>
+        <button className={tab === 'leads' ? 'on' : ''} onClick={() => setTab('leads')}>Find Leads</button>
+        <button className={tab === 'review' ? 'on' : ''} onClick={() => setTab('review')}>Research & Review</button>
+        <button className={tab === 'assistant' ? 'on' : ''} onClick={() => setTab('assistant')}>AI Outreach</button>
         <button className={tab === 'sales' ? 'on' : ''} onClick={() => setTab('sales')}>Sales</button>
-        <button className={tab === 'finder' ? 'on' : ''} onClick={() => setTab('finder')}>Finder</button>
-        <button className={tab === 'assistant' ? 'on' : ''} onClick={() => setTab('assistant')}>AI Assistant</button>
       </div>
 
-      {tab === 'sales' && <YcSales bizId={business.id} businessName={business.name} />}
-      {tab === 'finder' && <YcFinder bizId={business.id} businessName={business.name} />}
+      {tab === 'leads' && <YcPipeline bizId={business.id} />}
+      {tab === 'review' && <YcFinder bizId={business.id} businessName={business.name} />}
+      {tab === 'sales' && <YcSales bizId={business.id} businessName={business.name} businessSlug={business.slug} />}
       {tab === 'assistant' && <YcAssistant bizId={business.id} businessName={business.name} />}
     </div></div>
   )
