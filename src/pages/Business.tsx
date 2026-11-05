@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useData } from '../lib/data'
 import { FollowUpRow, Group, ProjectRow, TaskRow } from '../components/Rows'
 import { useEditor } from '../components/editorContext'
@@ -14,6 +14,12 @@ type Tab = 'overview' | 'tasks' | 'followups' | 'projects' | 'done'
 export function Business({ slug }: { slug: string }) {
   const { bizBySlug, tasks, followUps, projects, update } = useData()
   const open = useEditor()
+  useEffect(() => {
+    const q = new URLSearchParams(location.hash.split('?')[1] ?? '')
+    const taskId = q.get('task'), followupId = q.get('followup'), prospectId = q.get('prospect')
+    if (taskId) { const item = bt.find(t => t.id === taskId); if (item) open('task', item) }
+    else if (followupId) { const item = bf.find(f => f.id === followupId); if (item) open('followup', item) }
+  }, [])
   const [tab, setTab] = useState<Tab>('overview')
   const b = bizBySlug(slug)
   if (!b) return <div className="group"><div className="empty">This workspace was not found.</div></div>
