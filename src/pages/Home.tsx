@@ -24,7 +24,7 @@ type Attention = {
 }
 
 export function Home() {
-  const { businesses, tasks, followUps, projects, prospects, notifications } = useData()
+  const { businesses, tasks, followUps, projects, prospects, notifications, profile } = useData()
   const today = todayISO()
   const list = visibleBusinesses(businesses)
   const ids = new Set(list.map(b => b.id))
@@ -99,6 +99,19 @@ export function Home() {
       <div className="wshead"><BizSwitcher label="YOGE" />
         <button className="iconbtn badgeh" onClick={() => go('/inbox')} aria-label="Notifications"><Icon name="bell" />{reminderCount > 0 && <b>{reminderCount > 9 ? '9+' : reminderCount}</b>}</button>
       </div>
+
+      {profile?.role === 'member' && (
+        <section className="partner-profile">
+          <div className="partner-photo">
+            {profile.avatar_url ? <img src={profile.avatar_url} alt={profile.full_name || 'Partner'} /> : <span>{(profile.full_name || 'P').trim().slice(0,1).toUpperCase()}</span>}
+          </div>
+          <div className="partner-meta">
+            <div className="partner-kicker">YOGEWORKS PARTNER</div>
+            <h1>{profile.full_name || 'Partner'}</h1>
+            <p>{profile.position || 'Partner'}</p>
+          </div>
+        </section>
+      )}
 
       <div className="eyebrow">{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</div>
       <div className="hero-n">{need}</div>
