@@ -143,7 +143,7 @@ export function Settings({ scope }: { scope?: string } = {}) {
   )
 
 function AdminDashboard() {
-  const { businesses, teamProfiles, memberships, updateProfile, setMembership, createBusiness } = useData()
+  const { businesses, teamProfiles, memberships, updateProfile, setMembership, createBusiness, createPartner } = useData()
   const toast = useToast()
   const partners = teamProfiles.filter(p => p.role !== 'owner')
   const [selectedId, setSelectedId] = useState(partners[0]?.user_id ?? '')
@@ -152,6 +152,13 @@ function AdminDashboard() {
   const [position, setPosition] = useState('')
   const [avatar, setAvatar] = useState('')
   const [newWorkspace, setNewWorkspace] = useState('')
+  const [newEmail, setNewEmail] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [newName, setNewName] = useState('')
+  const [newPosition, setNewPosition] = useState('Sales Partner')
+  const [newAvatar, setNewAvatar] = useState('')
+  const [newAccess, setNewAccess] = useState<string[]>([])
+  const [creating, setCreating] = useState(false)
 
   useEffect(() => {
     if (!selected) return
@@ -177,10 +184,48 @@ function AdminDashboard() {
     <section className="section">
       <div className="section-title"><span>Admin · Partners</span><span>Owner controls</span></div>
       <div className="group pad">
+        <div>
+          <div className="row-title">Create partner account</div>
+          <p className="row-sub" style={{whiteSpace:'normal'}}>Create the login yourself. The partner can sign in immediately with the email and password you set here.</p>
+          <div className="two">
+            <label className="fld"><span>Name</span><input className="input" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Partner name" /></label>
+            <label className="fld"><span>Position</span><input className="input" value={newPosition} onChange={e => setNewPosition(e.target.value)} placeholder="Sales Partner" /></label>
+          </div>
+          <div className="two">
+            <label className="fld"><span>Email</span><input className="input" type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="partner@example.com" autoComplete="off" /></label>
+            <label className="fld"><span>Password</span><input className="input" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="At least 6 characters" autoComplete="new-password" /></label>
+          </div>
+          <label className="fld"><span>Profile image URL (optional)</span><input className="input" value={newAvatar} onChange={e => setNewAvatar(e.target.value)} placeholder="https://…" /></label>
+          <div className="section-title" style={{padding:'6px 0 7px'}}><span>Workspace access</span></div>
+          <div className="group">
+            {businesses.map(b => <label key={b.id} className="row switch">
+              <div className="row-main"><div className="row-title">{b.name}</div><div className="row-sub">Give this partner access</div></div>
+              <input type="checkbox" checked={newAccess.includes(b.id)} onChange={e => setNewAccess(xs => e.target.checked ? [...xs, b.id] : xs.filter(id => id !== b.id))} />
+            </label>)}
+          </div>
+          <button className="btn primary block" disabled={creating || !newName.trim() || !newEmail.trim() || newPassword.length < 6} onClick={async () => {
+            setCreating(true)
+            const res = await createPartner({
+              email: newEmail.trim(),
+              password: newPassword,
+              full_name: newName.trim(),
+              position: newPosition.trim(),
+              avatar_url: newAvatar.trim(),
+              workspace_ids: newAccess,
+            })
+            if (res) {
+              setNewEmail(''); setNewPassword(''); setNewName(''); setNewPosition('Sales Partner'); setNewAvatar(''); setNewAccess([])
+              setSelectedId(res.user_id)
+              toast('Partner account created. You can give them the email and password you entered.')
+            }
+            setCreating(false)
+          }}>{creating ? 'Creating account…' : 'Create partner account'}</button>
+        </div>
+        <div style={{height:1,background:'var(--line)',margin:'18px 0'}} />
         {!partners.length ? (
           <div>
-            <div className="row-title">No partner accounts yet</div>
-            <p className="row-sub" style={{whiteSpace:'normal'}}>Have your partner create an account using the normal Sign up screen first. Their account will appear here automatically.</p>
+            <div className="row-title">No other partner accounts yet</div>
+            <p className="row-sub" style={{whiteSpace:'normal'}}>Create one above. Existing partner accounts can be managed below.</p>
           </div>
         ) : (
           <>
