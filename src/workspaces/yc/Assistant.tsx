@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useData } from '../../lib/data'
 import { useEditor } from '../../components/editorContext'
 import { Prospect } from '../../lib/types'
@@ -51,6 +51,11 @@ export function YcAssistant({ bizId, businessName = 'Yogecreatives' }: { bizId: 
 
   const selected = approved.find(p => p.id === selectedId) || approved[0] || null
 
+  useEffect(() => {
+    setDraft(selected?.outreach_draft || '')
+    setStatus('')
+  }, [selected?.id, selected?.outreach_draft])
+
   const saveSettings = () => {
     localStorage.setItem('yoge_ollama_url', endpoint.replace(/\/$/, ''))
     localStorage.setItem('yoge_ollama_model', model)
@@ -72,9 +77,13 @@ export function YcAssistant({ bizId, businessName = 'Yogecreatives' }: { bizId: 
       const text = String(data.response || '').trim()
       if (!text) throw new Error('Empty response')
       setDraft(text)
-      await update('prospects', selected.id, { outreach_draft: text, outreach_channel: 'email' })
-      await create('prospect_activities', { prospect_id: selected.id, kind: 'research', note: 'AI Sales Assistant generated an outreach draft.' })
-      setStatus('Draft generated and saved to the prospect.')
+      await update('prospects', selected.id, {
+        outreach_draft: text,
+        outreach_channel: 'email',
+        outreach_approved_at: null,
+      })
+      await create('prospect_activities', { prospect_id: selected.id, kind: 'note', note: 'AI Sales Assistant generated an outreach draft.' })
+      setStatus('Draft generated and saved. Previous outreach approval was cleared; review it again before sending.')
     } catch (e) {
       setDraft(fallbackDraft(selected, businessName))
       setStatus('Local Ollama is not reachable. A safe fallback draft was created; connect Ollama to generate with AI.')
@@ -123,7 +132,7 @@ export function YcAssistant({ bizId, businessName = 'Yogecreatives' }: { bizId: 
 
       <div className="listcard">
         <div className="sectionlabel" style={{ marginTop: 0 }}>1 · Choose an approved prospect</div>
-        <select className="pill" value={selected?.id || ''} onChange={e => { setSelectedId(e.target.value); setDraft(''); setStatus('') }}>
+        <select className="pill" value={selected?.id || ''} onChange={e => setSelectedId(e.target.value)}>
           {!approved.length && <option value="">No approved prospects</option>}
           {approved.map(p => <option key={p.id} value={p.id}>{p.agency_name} · {p.city || 'US'}</option>)}
         </select>
