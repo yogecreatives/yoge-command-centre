@@ -37,7 +37,7 @@ function ExpenseForm({ item, bizId, onClose }: { item?: Expense; bizId: string; 
   )
 }
 
-export function YcFinance({ bizId }: { bizId: string }) {
+export function YcFinance({ bizId, slug = 'yogecreatives' }: { bizId: string; slug?: string }) {
   const { projects, income, expenses } = useData(); const open = useEditor()
   const [ex, setEx] = useState<Expense | 'new' | null>(null); const [inc, setInc] = useState<Income | 'new' | null>(null)
   const P = projects.filter(p => p.business_id === bizId)
@@ -53,7 +53,7 @@ export function YcFinance({ bizId }: { bizId: string }) {
   const pendSum = pending.reduce((a, p) => a + Number(p.balance_amount), 0)
   return (
     <>
-      <SubBack title="Finance" sub="Income, expenses and pending payments." />
+      <SubBack title="Finance" sub="Income, expenses and pending payments." slug={slug} />
       <div className="tabrow">{years.map(y => <button key={y} className={year === y ? 'on' : ''} onClick={() => setYear(y)}>{y}</button>)}</div>
       <div className="kstats four">
         <div><b>{f(received)}</b><span>Project payments received</span></div><div><b>{f(other)}</b><span>Other income</span></div>
