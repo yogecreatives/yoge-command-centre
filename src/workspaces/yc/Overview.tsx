@@ -8,7 +8,7 @@ import { dueLabel, fmtStamp, todayISO } from '../../lib/dates'
 import { leadDue } from '../../lib/clientPipeline'
 import { byDue } from '../../lib/logic'
 
-export function YcOverview({ bizId }: { bizId: string }) {
+export function YcOverview({ bizId, businessName = 'Yogecreatives' }: { bizId: string; businessName?: string }) {
   const { tasks, projects, prospects, activities, setTaskStatus } = useData()
   const open = useEditor(); const today = todayISO()
   const T = tasks.filter((t: any) => t.business_id === bizId), P = projects.filter((p: any) => p.business_id === bizId), L = prospects.filter((p: any) => p.business_id === bizId)
@@ -40,7 +40,7 @@ export function YcOverview({ bizId }: { bizId: string }) {
 
   return (
     <>
-      <div className="eyebrow">{new Date().toLocaleDateString(undefined, { weekday: 'long' })} · Yogecreatives</div>
+      <div className="eyebrow">{new Date().toLocaleDateString(undefined, { weekday: 'long' })} · {businessName}</div>
       <div className="hero-n">{items.length}</div>
       <p className="hero-s">{items.length === 1 ? 'thing needs you now' : 'things need you now'}</p>
       <StackDeck items={items} onDone={onDone} onOpen={onOpen} doneLabel="Done" empty="Nothing is due. Add a task or follow up a lead." />
@@ -65,7 +65,7 @@ export function YcOverview({ bizId }: { bizId: string }) {
 
       <div className="sectionlabel">Recent activity</div>
       <div className="listcard">{feed.length ? feed.map((f, i) => <div key={i} className="row"><div className="row-main"><div className="row-title" style={{ fontSize: 14 }}>{f.text}</div></div><span className="chip">{fmtStamp(f.at)}</span></div>) : <div className="empty">Activity appears here as you work.</div>}</div>
-      <button className="link" onClick={() => go('/w/yogecreatives/tasks')} style={{ margin: '0 6px' }}>View all tasks</button>
+      <button className="link" onClick={() => go('/w/' + (businessName === 'Yogeworks' ? 'yogeworks' : 'yogecreatives') + '/tasks')} style={{ margin: '0 6px' }}>View all tasks</button>
     </>
   )
 }
