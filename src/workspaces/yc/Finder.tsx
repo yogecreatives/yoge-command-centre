@@ -71,6 +71,7 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
   }
 
   const selectVisible = () => setSelected(new Set(list.filter(p => !!p.website).map(p => p.id)))
+  const selectResearchQueue = () => setSelected(new Set(list.filter(p => !!p.website && researchScore(p) < 4).slice(0, 10).map(p => p.id)))
   const clearSelected = () => setSelected(new Set())
 
   const researchOne = async (p: Prospect) => {
@@ -146,7 +147,7 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
           <h1 className="pagetitle">YogeStudio Finder</h1>
           <p className="pagesub">Find small batches of quality prospects for {businessName}. Research first. You decide the pitch.</p>
         </div>
-        <button className="btn" onClick={() => go('/w/yogecreatives/pipeline')}>Import leads</button>
+        <button className="btn" onClick={() => go('/sales-machine')}>Import leads</button>
       </div>
 
       <div className="kstats four">
@@ -181,6 +182,7 @@ export function YcFinder({ bizId, businessName = 'Yogecreatives' }: { bizId: str
           <span className="chip">{selected.size} selected</span>
         </div>
         <div className="act">
+          <button className="mini" onClick={selectResearchQueue} disabled={batchResearching}>Select research queue (10)</button>
           <button className="mini" onClick={selectVisible} disabled={batchResearching}>Select visible with websites</button>
           <button className="mini" onClick={clearSelected} disabled={batchResearching || !selected.size}>Clear</button>
           <button className="mini rep" onClick={batchResearch} disabled={batchResearching || !selected.size}>
