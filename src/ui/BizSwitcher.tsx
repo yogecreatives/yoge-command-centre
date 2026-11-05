@@ -3,6 +3,7 @@ import { Sheet } from './Sheet'
 import { useData } from '../lib/data'
 import { go } from '../lib/route'
 import { businessRoute, visibleBusinesses } from '../lib/workspaces'
+import { Icon } from './Icon'
 
 export function BizSwitcher({ slug, label }: { slug?: string; label?: string }) {
   const { businesses, bizBySlug } = useData()
@@ -11,7 +12,7 @@ export function BizSwitcher({ slug, label }: { slug?: string; label?: string }) 
   const name = label ?? cur?.name ?? 'YOGE'
   return (
     <>
-      <button className="chip-sw" onClick={() => setOpen(true)} aria-haspopup="dialog"><span className="av">{name[0]}</span>{name}<i>⌄</i></button>
+      <button className="chip-sw" onClick={() => setOpen(true)} aria-haspopup="dialog"><span className="av">{name[0]}</span>{name}<span className="sw-chevron"><Icon name="chevron" size={14} /></span></button>
       {open && (
         <Sheet title="Switch business" onClose={() => setOpen(false)}>
           <div className="group">
