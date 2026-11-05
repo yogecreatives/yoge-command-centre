@@ -86,7 +86,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     catch (e: any) { if (!loaded.current) { setError(e.message); setState('error') } else toast('Could not refresh: ' + e.message, 'error') }
   }, [load, toast])
 
-  // Initial load: make sure the account has its five workspaces, then fetch everything.
+  // Initial load: make sure the account has its three workspaces, then fetch everything.
   useEffect(() => {
     let dead = false
     ;(async () => {
