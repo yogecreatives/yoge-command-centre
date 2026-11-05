@@ -178,11 +178,9 @@ begin
   insert into public.profiles (user_id) values (uid) on conflict (user_id) do nothing;
   insert into public.user_settings (user_id) values (uid) on conflict (user_id) do nothing;
   insert into public.businesses (user_id, slug, name, description, symbol, sort_order) values
-    (uid, 'white-label',   'White Label',      'Agency partnerships · Outsourced Wix development', '↗', 1),
-    (uid, 'yogeworks',     'Yogeworks',        'Malaysia market · Sales partners · Website delivery', '◈', 2),
-    (uid, 'yogecreatives', 'Yogecreatives',    'Wix agency · Marketing · Clients', '✦', 3),
-    (uid, 'yogefolio',     'Yogefolio',        'Portfolio websites for models, actors and creatives', '▧', 4),
-    (uid, 'other',         'Other businesses', 'New ventures · Experiments · Miscellaneous', '＋', 5)
+    (uid, 'yogecreatives', 'Yogecreatives', 'Wix agency · Marketing · Clients', '✦', 1),
+    (uid, 'white-label',   'White Label',   'Agency partnerships · Outsourced Wix development', '↗', 2),
+    (uid, 'yogeworks',     'Yogeworks',     'Malaysia market · Sales partners · Website delivery', '◈', 3)
   on conflict (user_id, slug) do nothing;
 end $$;
 revoke all on function public._seed_user(uuid) from public, anon, authenticated;
