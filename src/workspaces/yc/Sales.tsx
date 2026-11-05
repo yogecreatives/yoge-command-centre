@@ -15,6 +15,28 @@ const classificationLabel: Record<Classification, string> = {
   outdated: 'Outdated',
 }
 
+function nextActionFor(p: Prospect, today: string) {
+  if (p.next_action_date && p.next_action_date <= today && !['won','lost','not_interested'].includes(p.stage)) {
+    return { label: 'Follow up now', score: 120 }
+  }
+  if (['interested','call_booked','proposal_sent','negotiation'].includes(p.stage)) {
+    return { label: p.next_action || 'Move the conversation forward', score: 110 }
+  }
+  if (p.review_status === 'approved' && p.website_classification !== 'unreviewed' && !p.outreach_draft) {
+    return { label: 'Generate outreach', score: 100 }
+  }
+  if (p.review_status === 'approved' && p.outreach_draft && !p.outreach_approved_at) {
+    return { label: 'Review & approve outreach', score: 95 }
+  }
+  if (p.outreach_approved_at && !['won','lost','not_interested'].includes(p.stage)) {
+    return { label: 'Send outreach manually', score: 90 }
+  }
+  if (p.priority === 'high' && p.review_status === 'pending') {
+    return { label: 'Review high-priority prospect', score: 80 }
+  }
+  return null
+}
+
 export function YcSales({ bizId, businessName = 'Yogecreatives', businessSlug = 'yogecreatives' }: { bizId: string; businessName?: string; businessSlug?: string }) {
   const { prospects, settings, update, create } = useData()
   const open = useEditor()
@@ -27,20 +49,15 @@ export function YcSales({ bizId, businessName = 'Yogecreatives', businessSlug = 
   const pending = us.filter(p => p.review_status === 'pending')
   const approved = us.filter(p => p.review_status === 'approved')
   const interested = us.filter(p => ['interested','call_booked','proposal_sent','negotiation'].includes(p.stage))
-  const due = us.filter(p => p.next_action_date && p.next_action_date <= today && !['won','lost','not_interested'].includes(p.stage))
   const proposals = us.filter(p => ['proposal_sent','negotiation'].includes(p.stage))
   const list = filter === 'review' ? pending : filter === 'approved' ? approved : us
 
   const nextBest = useMemo(() => {
-    const candidates = [
-      ...due.map(p => ({ p, score: 100 })),
-      ...interested.map(p => ({ p, score: 90 })),
-      ...approved.filter(p => !p.outreach_draft).map(p => ({ p, score: 80 })),
-      ...pending.filter(p => p.priority === 'high').map(p => ({ p, score: 70 })),
-    ]
-    candidates.sort((a, b) => b.score - a.score)
-    return candidates[0]?.p ?? null
-  }, [due, interested, approved, pending])
+    return us
+      .map(p => ({ p, action: nextActionFor(p, today) }))
+      .filter(x => x.action)
+      .sort((a, b) => (b.action!.score - a.action!.score) || (b.p.priority === 'high' ? 1 : 0))[0]?.p ?? null
+  }, [us, today])
 
   const review = async (p: Prospect, status: ReviewStatus) => {
     const ok = await update('prospects', p.id, { review_status: status })
@@ -72,7 +89,7 @@ export function YcSales({ bizId, businessName = 'Yogecreatives', businessSlug = 
           <button className="row" onClick={() => open('lead', nextBest)}>
             <div className="row-main">
               <div className="row-title">{nextBest.agency_name}</div>
-              <div className="row-sub">{nextBest.next_action || (nextBest.next_action_date && nextBest.next_action_date <= today ? 'Follow up now' : 'Review and prepare outreach')}</div>
+              <div className="row-sub">{nextActionFor(nextBest, today)?.label}</div>
             </div>
             <span className="chip">{nextBest.priority}</span>
           </button>
@@ -88,7 +105,7 @@ export function YcSales({ bizId, businessName = 'Yogecreatives', businessSlug = 
       {!us.length && (
         <div className="deck-empty">
           No prospects are assigned to this business yet. Import your first small batch from the Pipeline.
-          <div style={{ marginTop: 12 }}><button className="btn" onClick={() => go('/w/yogecreatives/pipeline')}>Go to Pipeline → Import CSV</button></div>
+          <div style={{ marginTop: 12 }}><button className="btn" onClick={() => go('/w/' + businessSlug + '/pipeline')}>Go to Pipeline → Import CSV</button></div>
         </div>
       )}
 
@@ -147,6 +164,8 @@ function ReviewCard({ p, onOpen, onReview, onClassify, onPriority }: {
       <div className="row-sub" style={{ padding: '0 8px 8px' }}>
         {classificationLabel[p.website_classification as Classification]} · Priority {p.priority}
         {p.next_action_date ? ' · Next action ' + fmtDate(p.next_action_date) : ''}
+        {p.outreach_draft ? ' · Outreach draft ready' : ''}
+        {p.outreach_approved_at ? ' · Outreach approved' : ''}
       </div>
     </div>
   )
