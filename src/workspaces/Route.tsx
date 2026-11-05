@@ -26,7 +26,7 @@ export function WorkspaceRoute({ parts }: { parts: string[] }) {
   const query = new URLSearchParams(route.split('?')[1] ?? '')
 
   useEffect(() => {
-    if (slug !== 'yogecreatives' && slug !== 'white-label') go(businessRoute(slug || ''))
+    if (slug !== 'yogecreatives' && slug !== 'white-label' && slug !== 'yogeworks') go(businessRoute(slug || ''))
   }, [slug])
 
   useEffect(() => {
@@ -53,14 +53,14 @@ export function WorkspaceRoute({ parts }: { parts: string[] }) {
     </WorkspaceShell>
   }
 
-  if (slug !== 'yogecreatives') return null
+  if (slug !== 'yogecreatives' && slug !== 'yogeworks') return null
   if (!biz) return <div className="shell2"><div className="deck-empty">Yogecreatives workspace not found. Reload the app.</div></div>
 
   let page
   if (tab === 'tasks') page = <YcTasks bizId={biz.id} />
   else if (tab === 'pipeline') page = <YcPipeline bizId={biz.id} />
   else if (tab === 'projects') page = <YcProjects bizId={biz.id} />
-  else if (tab === 'more') page = sub === 'finance' ? <YcFinance bizId={biz.id} /> : sub === 'reports' ? <YcReports bizId={biz.id} /> : sub === 'contacts' ? <YcContacts bizId={biz.id} /> : sub === 'settings' ? <Settings scope="yc" /> : <YcMore />
-  else page = <YcOverview bizId={biz.id} />
+  else if (tab === 'more') page = sub === 'finance' ? <YcFinance bizId={biz.id} slug={slug} /> : sub === 'reports' ? <YcReports bizId={biz.id} slug={slug} /> : sub === 'contacts' ? <YcContacts bizId={biz.id} slug={slug} /> : sub === 'settings' ? <Settings scope={slug} /> : <YcMore slug={slug} name={biz.name} />
+  else page = <YcOverview bizId={biz.id} businessName={biz.name} />
   return <WorkspaceShell slug={slug} tab={['overview', 'tasks', 'pipeline', 'projects', 'more'].includes(tab) ? tab : 'overview'}>{page}</WorkspaceShell>
 }
