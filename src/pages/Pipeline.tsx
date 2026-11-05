@@ -52,7 +52,7 @@ function Plain({ p }: { p: Prospect }) {
   )
 }
 
-export function Pipeline({ embedded = false }: { embedded?: boolean }) {
+export function Pipeline() {
   const { prospects: allProspects, activities: allActivities, settings, businesses, create, createMany, update } = useData()
   const open = useEditor(); const toast = useToast(); const { setStage } = usePipelineActions()
   const [view, setView] = useState<'today' | 'all' | 'board'>('today')
