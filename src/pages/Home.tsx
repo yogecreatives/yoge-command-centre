@@ -1,15 +1,27 @@
+import { useMemo } from 'react'
 import { useData } from '../lib/data'
-import { WalletStack, PillNav, WalletCard } from '../ui/Stack'
+import { WalletStack, WalletCard } from '../ui/Stack'
 import { BizSwitcher } from '../ui/BizSwitcher'
 import { Icon } from '../ui/Icon'
 import { go } from '../lib/route'
-import { todayISO } from '../lib/dates'
+import { todayISO, dueLabel } from '../lib/dates'
 import { WAITING } from '../lib/pipeline'
 import { leadDue } from '../lib/clientPipeline'
 import { businessRoute, visibleBusinesses } from '../lib/workspaces'
+import { Task, FollowUp, Prospect } from '../lib/types'
 
-export const HOME_TABS: [string, string][] = [['home', 'Home'], ['tasks', 'Tasks'], ['inbox', 'Inbox'], ['more', 'More']]
-export const goHomeTab = (id: string) => go(id === 'home' ? '/home' : '/' + id)
+type Attention = {
+  id: string
+  kind: 'task' | 'followup' | 'prospect'
+  businessId: string
+  title: string
+  sub: string
+  date: string | null
+  overdue: boolean
+  task?: Task
+  followup?: FollowUp
+  prospect?: Prospect
+}
 
 export function Home() {
   const { businesses, tasks, followUps, projects, prospects, notifications } = useData()
@@ -18,7 +30,8 @@ export function Home() {
   const ids = new Set(list.map(b => b.id))
   const T = tasks.filter(t => ids.has(t.business_id) && t.status !== 'completed')
   const F = followUps.filter(f => ids.has(f.business_id) && f.status === 'open')
-  const wl = businesses.find(b => b.slug === 'white-label')?.id, yc = businesses.find(b => b.slug === 'yogecreatives')?.id
+  const wl = businesses.find(b => b.slug === 'white-label')?.id
+  const yc = businesses.find(b => b.slug === 'yogecreatives')?.id
   const wlDue = prospects.filter(p => p.business_id === wl && WAITING.includes(p.stage) && p.next_action_date && p.next_action_date <= today).length
   const ycLeadDue = prospects.filter(p => p.business_id === yc && leadDue(p, today)).length
   const overdue = T.filter(t => t.due_date && t.due_date < today).length
@@ -26,7 +39,6 @@ export function Home() {
   const fuDue = F.filter(f => f.follow_up_date <= today).length
   const need = overdue + dueToday + fuDue + wlDue + ycLeadDue
   const unpaid = projects.filter(p => ids.has(p.business_id) && p.status !== 'dropped').reduce((a, p) => a + Math.max(0, Number(p.balance_amount) || 0), 0)
-  const unread = notifications.filter(n => !n.read_at).length
 
   const cards: WalletCard[] = list.map(b => {
     const bt = T.filter(t => t.business_id === b.id), bf = F.filter(f => f.business_id === b.id), bp = projects.filter(p => p.business_id === b.id)
@@ -45,20 +57,67 @@ export function Home() {
     return { id: b.slug, name: b.name, chip: `${bt.length} pending`, info: `${fu} follow-ups due · ${active} projects in progress`,
       mini: [[String(bt.length), 'Pending'], [String(bt.filter(t => t.due_date && t.due_date < today).length), 'Overdue'], [String(fu), 'Follow-ups']] }
   })
-  // the last card is shown open, so give it its three counts
-  const last = cards[cards.length - 1]
-  if (last && !last.mini) { const bt = T.filter(t => t.business_id === list[list.length - 1].id); last.mini = [[String(bt.length), 'Pending'], [String(bt.filter(t => t.due_date && t.due_date < today).length), 'Overdue'], ['0', 'Follow-ups']] }
+
+  const attention = useMemo<Attention[]>(() => {
+    const out: Attention[] = []
+    for (const t of T.filter(t => t.due_date && t.due_date <= today).sort((a, b) => (a.due_date || '').localeCompare(b.due_date || ''))) {
+      const b = businesses.find(x => x.id === t.business_id)
+      out.push({ id: 't:' + t.id, kind: 'task', businessId: t.business_id, title: t.title, sub: `${b?.name ?? 'Business'} · ${t.priority === 'urgent' ? 'Urgent' : t.priority === 'high' ? 'High' : 'Task'}`, date: t.due_date, overdue: t.due_date! < today, task: t })
+    }
+    for (const f of F.filter(f => f.follow_up_date <= today).sort((a, b) => a.follow_up_date.localeCompare(b.follow_up_date))) {
+      const b = businesses.find(x => x.id === f.business_id)
+      out.push({ id: 'f:' + f.id, kind: 'followup', businessId: f.business_id, title: f.person_name, sub: `${b?.name ?? 'Business'} · ${f.company || 'Follow-up'}`, date: f.follow_up_date, overdue: f.follow_up_date < today, followup: f })
+    }
+    for (const p of prospects.filter(p => (p.business_id === wl || p.business_id === yc) && leadDue(p, today)).sort((a, b) => (a.next_action_date || '').localeCompare(b.next_action_date || ''))) {
+      const b = businesses.find(x => x.id === p.business_id)
+      out.push({ id: 'p:' + p.id, kind: 'prospect', businessId: p.business_id, title: p.agency_name, sub: `${b?.name ?? 'Business'} · ${p.next_action || 'Follow-up'}`, date: p.next_action_date, overdue: !!p.next_action_date && p.next_action_date < today, prospect: p })
+    }
+    return out.slice(0, 8)
+  }, [T, F, prospects, businesses, wl, yc, today])
+
+  const openAttention = (item: Attention) => {
+    const b = businesses.find(x => x.id === item.businessId)
+    if (!b) return
+    if (item.kind === 'task' && item.task) {
+      if (b.slug === 'yogecreatives' || b.slug === 'white-label') go(`/w/${b.slug}/tasks?task=${item.task.id}`)
+      else go(`/b/${b.slug}?task=${item.task.id}`)
+    } else if (item.kind === 'followup' && item.followup) {
+      if (b.slug === 'yogecreatives' || b.slug === 'white-label') go(`/w/${b.slug}/tasks?followup=${item.followup.id}`)
+      else go(`/b/${b.slug}?followup=${item.followup.id}`)
+    } else if (item.kind === 'prospect' && item.prospect) {
+      const route = b.slug === 'yogecreatives' ? 'lead' : 'prospect'
+      if (b.slug === 'yogecreatives' || b.slug === 'white-label') go(`/w/${b.slug}/pipeline?prospect=${item.prospect.id}`)
+      else go(`/b/${b.slug}?prospect=${item.prospect.id}`)
+      void route
+    }
+  }
+
+  const reminderCount = notifications.filter(n => !n.read_at && n.kind.includes('due')).length
 
   return (
-    <div className="shell2"><div className="page">
+    <div className="shell2 home-shell"><div className="page">
       <div className="wshead"><BizSwitcher label="YOGE" />
-        <button className="iconbtn badgeh" onClick={() => go('/inbox')} aria-label="Notifications"><Icon name="bell" />{unread > 0 && <b>{unread > 9 ? '9+' : unread}</b>}</button></div>
+        <button className="iconbtn badgeh" onClick={() => go('/inbox')} aria-label="Notifications"><Icon name="bell" />{reminderCount > 0 && <b>{reminderCount > 9 ? '9+' : reminderCount}</b>}</button>
+      </div>
+
       <div className="eyebrow">{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</div>
       <div className="hero-n">{need}</div>
       <p className="hero-s">{need === 1 ? 'thing needs you today' : 'things need you today'}</p>
+
       {cards.length ? <WalletStack cards={cards} onOpen={slug => go(businessRoute(slug))} /> : <div className="deck-empty">Setting up your businesses…</div>}
-      <div className="kstats"><div><b>{overdue}</b><span>Overdue</span></div><div><b>{fuDue + wlDue + ycLeadDue}</b><span>Follow-ups</span></div><div><b>{Math.round(unpaid).toLocaleString()}</b><span>Unpaid</span></div></div>
-      <PillNav tabs={HOME_TABS} active="home" onGo={goHomeTab} />
+
+      <div className="sectionlabel">Needs attention</div>
+      <div className="listcard">
+        {attention.length ? attention.map(item => (
+          <button key={item.id} className="row" onClick={() => openAttention(item)}>
+            <span className="tile sm">{item.kind === 'task' ? <Icon name="tasks" size={17} /> : item.kind === 'followup' ? <Icon name="follow" size={17} /> : <Icon name="send" size={17} />}</span>
+            <div className="row-main"><div className="row-title">{item.title}</div><div className="row-sub">{item.sub}</div></div>
+            <span className={`chip ${item.overdue ? 'red' : item.date === today ? 'amber' : ''}`}>{item.overdue ? 'Overdue' : item.date === today ? 'Today' : item.date ? dueLabel(item.date, today) : 'Pending'}</span>
+          </button>
+        )) : <div className="empty">Nothing urgent across your businesses.</div>}
+      </div>
+
+      <div className="kstats"><div><b>{overdue}</b><span>Overdue</span></div><div><b>{fuDue + wlDue + ycLeadDue + reminderCount}</b><span>Follow-ups & reminders</span></div><div><b>{Math.round(unpaid).toLocaleString()}</b><span>Unpaid</span></div></div>
     </div></div>
   )
 }
