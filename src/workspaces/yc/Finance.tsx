@@ -46,7 +46,7 @@ export function YcFinance({ bizId, slug = 'yogecreatives' }: { bizId: string; sl
   const yp = P.filter(p => (p.start_date || '').startsWith(year))
   const received = yp.reduce((a, p) => a + Number(p.paid_amount), 0)
   const I = income.filter(i => i.entry_date.startsWith(year) && (!i.business_id || i.business_id === bizId)).sort((a, b) => b.entry_date.localeCompare(a.entry_date))
-  const other = I.filter(i => i.status === 'received').reduce((a, i) => a + Number(i.amount), 0), expect = I.filter(i => i.status === 'expected').reduce((a, i) => a + Number(i.amount), 0)
+  const partnerCommission = I.filter(i => i.status === 'received').reduce((a, i) => a + Number(i.amount), 0), expect = I.filter(i => i.status === 'expected').reduce((a, i) => a + Number(i.amount), 0)
   const E = expenses.filter(e => e.business_id === bizId && e.expense_date.startsWith(year)).sort((a, b) => b.expense_date.localeCompare(a.expense_date))
   const spent = E.reduce((a, e) => a + Number(e.amount), 0)
   const pending = P.filter(p => p.status !== 'dropped' && Number(p.balance_amount) > 0).sort((a, b) => Number(b.balance_amount) - Number(a.balance_amount))
@@ -56,13 +56,13 @@ export function YcFinance({ bizId, slug = 'yogecreatives' }: { bizId: string; sl
       <SubBack title="Finance" sub="Income, expenses and pending payments." slug={slug} />
       <div className="tabrow">{years.map(y => <button key={y} className={year === y ? 'on' : ''} onClick={() => setYear(y)}>{y}</button>)}</div>
       <div className="kstats four">
-        <div><b>{f(received)}</b><span>Project payments received</span></div><div><b>{f(other)}</b><span>Other income</span></div>
-        <div><b>{f(spent)}</b><span>Expenses</span></div><div><b>{f(received + other - spent)}</b><span>Net · {year}</span></div>
+        <div><b>{f(received)}</b><span>Project payments received</span></div><div><b>{f(partnerCommission)}</b><span>Wix Partner Commission</span></div>
+        <div><b>{f(spent)}</b><span>Expenses</span></div><div><b>{f(received + partnerCommission - spent)}</b><span>Net · {year}</span></div>
       </div>
       <p className="groupnote">Project payments count in the year of the project date. Past months stay approximate because the sheets have no payment dates.</p>
       <Group title={`Pending payments · ${f(pendSum)}`} items={pending.slice(0, 30).map(p => <button key={p.id} className="row" onClick={() => open('project', p)}><div className="row-main"><div className="row-title">{p.name}</div><div className="row-sub">{p.invoice_status === 'not_sent' ? 'Invoice not sent' : 'Invoice sent'} · {fmtDate(p.start_date)}</div></div><span className="chip red">{f(Number(p.balance_amount))}</span></button>)} empty="Nothing pending." />
-      <Group title={`Other income · ${f(other)}${expect ? ` · expected ${f(expect)}` : ''}`} action={<button className="link" onClick={() => setInc('new')} aria-label="Add income"><Icon name="plus" size={18} /></button>}
-        items={I.map(i => <button key={i.id} className="row" onClick={() => setInc(i)}><div className="row-main"><div className="row-title">{i.source}</div><div className="row-sub">{fmtDate(i.entry_date)}{i.status === 'expected' ? ' · expected' : ''}</div></div><span className={`chip ${i.status === 'expected' ? 'amber' : ''}`}>{f(Number(i.amount))}</span></button>)} empty="No other income this year." />
+      <Group title={`Wix Partner Commission · ${f(partnerCommission)}${expect ? ` · expected ${f(expect)}` : ''}`} action={<button className="link" onClick={() => setInc('new')} aria-label="Add partner commission"><Icon name="plus" size={18} /></button>}
+        items={I.map(i => <button key={i.id} className="row" onClick={() => setInc(i)}><div className="row-main"><div className="row-title">{i.source}</div><div className="row-sub">{fmtDate(i.entry_date)}{i.status === 'expected' ? ' · expected' : ''}</div></div><span className={`chip ${i.status === 'expected' ? 'amber' : ''}`}>{f(Number(i.amount))}</span></button>)} empty="No Wix Partner Commission this year." />
       <Group title={`Expenses · ${f(spent)}`} action={<button className="link" onClick={() => setEx('new')} aria-label="Add expense"><Icon name="plus" size={18} /></button>}
         items={E.map(e => <button key={e.id} className="row" onClick={() => setEx(e)}><div className="row-main"><div className="row-title">{e.category || 'Expense'}{e.vendor ? ` · ${e.vendor}` : ''}</div><div className="row-sub">{fmtDate(e.expense_date)}</div></div><span className="chip">{f(Number(e.amount))}</span></button>)} empty="No expenses recorded. Tap + to add one." />
       {ex && <ExpenseForm item={ex === 'new' ? undefined : ex} bizId={bizId} onClose={() => setEx(null)} />}
