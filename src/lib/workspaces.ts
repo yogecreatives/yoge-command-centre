@@ -5,8 +5,14 @@ export const ORDER = ['yogecreatives', 'white-label', 'yogeworks']
 
 export const visibleBusinesses = (list: Business[]) =>
   list
-    .filter(b => !HIDDEN_SLUGS.includes(b.slug) && ORDER.includes(b.slug))
-    .sort((a, b) => ORDER.indexOf(a.slug) - ORDER.indexOf(b.slug))
+    .filter(b => !HIDDEN_SLUGS.includes(b.slug))
+    .sort((a, b) => {
+      const ai = ORDER.indexOf(a.slug), bi = ORDER.indexOf(b.slug)
+      if (ai >= 0 && bi >= 0) return ai - bi
+      if (ai >= 0) return -1
+      if (bi >= 0) return 1
+      return a.sort_order - b.sort_order
+    })
 
 export const businessRoute = (slug: string) =>
   slug === 'yogecreatives'
