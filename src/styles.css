@@ -299,3 +299,13 @@ a.btn{text-decoration:none}label.btn{cursor:pointer}
 
 .home-shell{padding-bottom:32px}
 @media(min-width:900px){.home-shell{padding-bottom:36px}}
+
+
+/* White Label mobile pipeline fit */
+@media(max-width:899px){
+  .ws-white-label .capture{gap:6px;width:100%;min-width:0}
+  .ws-white-label .capture input{min-width:0}
+  .ws-white-label .capture input+input{max-width:30%;width:30%}
+  .ws-white-label .capture .btn{padding-left:14px;padding-right:14px;flex:none}
+  .ws-white-label .seg{width:100%;box-sizing:border-box}
+}
