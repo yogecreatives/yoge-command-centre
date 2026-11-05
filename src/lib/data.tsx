@@ -2,7 +2,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import { supabase } from './supabase'
 import { useAuth } from './auth'
 import { useToast } from '../ui/toast'
-import { Activity, AppNotification, Business, Expense, FollowUp, Idea, Income, Project, Prospect, Referrer, Settings, Status, Task } from './types'
+import { Activity, AppNotification, Business, Expense, FollowUp, Idea, Income, Project, Prospect, Referrer, Settings, Status, Task, Profile, WorkspaceMembership } from './types'
 
 type Tables = {
   tasks: Task[]; follow_ups: FollowUp[]; projects: Project[]; ideas: Idea[]; notifications: AppNotification[]
@@ -19,6 +19,10 @@ interface DataCtx {
   busy: number
   email: string
   businesses: Business[]
+  profile: Profile | null
+  teamProfiles: Profile[]
+  memberships: WorkspaceMembership[]
+  isAdmin: boolean
   bizById: (id: string | null | undefined) => Business | undefined
   bizBySlug: (slug: string) => Business | undefined
   tasks: Task[]; followUps: FollowUp[]; projects: Project[]; ideas: Idea[]; notifications: AppNotification[]
@@ -50,13 +54,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [online, setOnline] = useState(navigator.onLine)
   const [busy, setBusy] = useState(0)
   const [businesses, setBusinesses] = useState<Business[]>([])
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [teamProfiles, setTeamProfiles] = useState<Profile[]>([])
+  const [memberships, setMemberships] = useState<WorkspaceMembership[]>([])
   const [db, setDb] = useState<Tables>(empty)
   const [settings, setSettings] = useState<Settings | null>(null)
   const loaded = useRef(false)
 
   const load = useCallback(async () => {
-    const [b, t, f, p, i, n, s, rf, pr, ac, inc, ex] = await Promise.all([
+    const [b, me, profs, memberships, t, f, p, i, n, s, rf, pr, ac, inc, ex] = await Promise.all([
       supabase.from('businesses').select('*').order('sort_order'),
+      supabase.from('profiles').select('*').eq('user_id', uid).maybeSingle(),
+      supabase.from('profiles').select('*').order('full_name'),
+      supabase.from('workspace_memberships').select('*'),
       supabase.from('tasks').select('*'),
       supabase.from('follow_ups').select('*'),
       supabase.from('projects').select('*'),
@@ -69,13 +79,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
       supabase.from('income_entries').select('*'),
       supabase.from('expenses').select('*'),
     ])
-    const failed = [b, t, f, p, i, n, s, rf, pr, ac, inc, ex].find(r => r.error)
+    const failed = [b, me, profs, memberships, t, f, p, i, n, s, rf, pr, ac, inc, ex].find(r => r.error)
     if (failed?.error) {
       const m = failed.error.message
       throw new Error(/referrers|prospects|prospect_activities|income_entries|expenses/.test(m) ? 'The database needs the latest update. Run supabase/migration_002.sql and supabase/migration_003.sql in the Supabase SQL Editor, then reload. (' + m + ')' : m)
     }
     // Replace state only after every query succeeded, so a failed load never wipes what is on screen.
     setBusinesses((b.data ?? []) as Business[])
+    setProfile((me.data ?? null) as Profile | null)
+    setTeamProfiles((profs.data ?? []) as Profile[])
+    setMemberships((memberships.data ?? []) as WorkspaceMembership[])
     setDb({ tasks: t.data as Task[], follow_ups: f.data as FollowUp[], projects: p.data as Project[], ideas: i.data as Idea[], notifications: n.data as AppNotification[],
       referrers: rf.data as Referrer[], prospects: pr.data as Prospect[], prospect_activities: ac.data as Activity[], income_entries: inc.data as Income[], expenses: ex.data as Expense[] })
     setSettings((s.data ?? null) as Settings | null)
@@ -116,6 +129,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (state !== 'ready') return
     const ch = supabase.channel('yoge-sync-' + uid)
+    ch.on('postgres_changes', { event: '*', schema: 'public', table: 'workspace_memberships' }, () => { void load() })
+    ch.on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => { void load() })
     for (const table of TABLES) {
       ch.on('postgres_changes', { event: '*', schema: 'public', table }, (p: any) => {
         if (p.eventType === 'DELETE') removeLocal(table, p.old.id)
@@ -199,7 +214,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const bizMap = useMemo(() => new Map(businesses.map(b => [b.id, b])), [businesses])
   const value: DataCtx = {
-    state, error, online, busy, email: session!.user.email ?? '', businesses,
+    state, error, online, busy, email: session!.user.email ?? '', businesses, profile, teamProfiles, memberships, isAdmin: profile?.role === 'owner',
     bizById: id => (id ? bizMap.get(id) : undefined),
     bizBySlug: slug => businesses.find(b => b.slug === slug),
     tasks: db.tasks, followUps: db.follow_ups, projects: db.projects, ideas: db.ideas, notifications: db.notifications,
