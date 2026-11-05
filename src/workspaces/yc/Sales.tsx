@@ -15,7 +15,7 @@ const classificationLabel: Record<Classification, string> = {
   outdated: 'Outdated',
 }
 
-export function YcSales({ bizId, businessName = 'Yogecreatives' }: { bizId: string; businessName?: string }) {
+export function YcSales({ bizId, businessName = 'Yogecreatives', businessSlug = 'yogecreatives' }: { bizId: string; businessName?: string; businessSlug?: string }) {
   const { prospects, settings, update, create } = useData()
   const open = useEditor()
   const today = todayISO()
@@ -56,11 +56,11 @@ export function YcSales({ bizId, businessName = 'Yogecreatives' }: { bizId: stri
     <>
       <div className="wshead" style={{ marginBottom: 6 }}>
         <div><h1 className="pagetitle">{businessName} Sales</h1><p className="pagesub">Quality-first pipeline · {goal !== null ? `goal: ${goal} direct clients` : 'shared sales pipeline'}</p></div>
-        <button className="btn primary" onClick={() => go('/w/yogecreatives/pipeline')}>Open pipeline</button>
+        <button className="btn primary" onClick={() => go('/w/' + businessSlug + '/pipeline')}>Open pipeline</button>
       </div>
 
       <div className="kstats four">
-        <div><b>{won}/{goal}</b><span>Clients won</span></div>
+        <div><b>{won}{goal !== null ? '/' + goal : ''}</b><span>Clients won</span></div>
         <div><b>{pending.length}</b><span>Waiting for review</span></div>
         <div><b>{approved.length}</b><span>Approved prospects</span></div>
         <div><b>{proposals.length}</b><span>Proposal / negotiation</span></div>
