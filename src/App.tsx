@@ -24,6 +24,7 @@ import { Projects } from './pages/Projects'
 import { Partners } from './pages/Partners'
 import { Money } from './pages/Money'
 import { Home } from './pages/Home'
+import { SalesMachine } from './pages/SalesMachine'
 import { WorkspaceRoute } from './workspaces/Route'
 
 export default function App() {
@@ -55,6 +56,7 @@ function Shell() {
   const parts = path.split('/').filter(Boolean)
   if (path === '/home' || path === '/') return <Home />
   if (path === '/inbox') return <div className="shell2"><div className="page"><Inbox /></div></div>
+  if (path === '/sales-machine') return <SalesMachine />
   if (parts[0] === 'w') return <WorkspaceRoute parts={parts} />
   let page
   if (path.startsWith('/b/')) page = <Business key={path} slug={path.slice(3)} />
