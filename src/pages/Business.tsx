@@ -16,16 +16,18 @@ export function Business({ slug }: { slug: string }) {
   const open = useEditor()
   const [tab, setTab] = useState<Tab>('overview')
   const b = bizBySlug(slug)
-  if (!b) return <div className="group"><div className="empty">This workspace was not found.</div></div>
   const today = todayISO()
   // A workspace only ever sees its own business_id.
-  const bt = tasks.filter(t => t.business_id === b.id), bf = followUps.filter(f => f.business_id === b.id), bp = projects.filter(p => p.business_id === b.id)
+  const bt = b ? tasks.filter(t => t.business_id === b.id) : []
+  const bf = b ? followUps.filter(f => f.business_id === b.id) : []
+  const bp = b ? projects.filter(p => p.business_id === b.id) : []
   useEffect(() => {
     const q = new URLSearchParams(location.hash.split('?')[1] ?? '')
     const taskId = q.get('task'), followupId = q.get('followup')
     if (taskId) { const item = bt.find(t => t.id === taskId); if (item) open('task', item) }
     else if (followupId) { const item = bf.find(f => f.id === followupId); if (item) open('followup', item) }
   }, [bt, bf, open])
+  if (!b) return <div className="group"><div className="empty">This workspace was not found.</div></div>
   const s = summarize(bt, bf, bp, today)
   const openT = bt.filter(t => t.status !== 'completed').sort(byDue)
   const add = () => open(tab === 'followups' ? 'followup' : tab === 'projects' ? 'project' : 'task', undefined, { business_id: b.id })
