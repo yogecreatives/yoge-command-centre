@@ -78,6 +78,7 @@ function BusinessSelect({ value, onChange, allowNone }: { value: string; onChang
   )
 }
 const nz = (s: string) => (s.trim() ? s.trim() : null)
+const cleanProjectName = (s: string) => s.trim().replace(/\s*_\s*/g, '_')
 
 function SaveBar({ onSave, saving, onDelete, label = 'Save', children }: { onSave: () => void; saving: boolean; onDelete?: () => void; label?: string; children?: ReactNode }) {
   const [confirm, setConfirm] = useState(false)
@@ -222,7 +223,7 @@ function ProjectForm({ item, defaults, onClose }: { item?: Project; defaults?: a
     setSaving(true)
     const invoice_status: InvoiceStatus = total > 0 && paid >= total ? 'paid' : f.invoice_status === 'paid' ? 'sent' : f.invoice_status
     const row = {
-      name: f.name.trim(), client_name: nz(f.client_name), client_email: nz(f.client_email), client_phone: nz(f.client_phone), description: nz(f.description), business_id: f.business_id,
+      name: cleanProjectName(f.name), client_name: nz(f.client_name), client_email: nz(f.client_email), client_phone: nz(f.client_phone), description: nz(f.description), business_id: f.business_id,
       start_date: f.start_date || null, due_date: f.due_date || null, status: f.status, priority: f.priority, notes: nz(f.notes),
       total_amount: total, paid_amount: paid, referrer_id: f.referrer_id || null, invoice_status,
       completed_at: f.status === 'completed' ? (item?.completed_at ?? new Date().toISOString()) : null,
