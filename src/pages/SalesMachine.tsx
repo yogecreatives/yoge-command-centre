@@ -105,7 +105,7 @@ export function SalesMachine() {
       <div className="shell2 sales-machine-shell"><div className="page">
         <div className="wshead">
           <div>
-            <UniversalMenu businessId={null} />
+            <UniversalMenu businessId={null} onChangeBusiness={() => setBusinessId(null)} />
             <p className="pagesub" style={{ marginTop: 8 }}>Sales Machine · one shared sales engine for every Yoge business.</p>
           </div>
         </div>
