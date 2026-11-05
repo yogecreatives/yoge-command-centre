@@ -79,7 +79,7 @@ export function YcPipeline({ bizId }: { bizId: string }) {
     stage: 'new',
   })
   const scrape = async () => {
-    const base = scraperUrl.trim().replace(/\\/$/, '')
+    const base = scraperUrl.trim().replace(/\/$/, '')
     if (!base || !findLocation.trim() || !findCategory.trim()) return toast('Enter a location and business category.', 'error')
     localStorage.setItem('yoge_gmaps_scraper_url', base)
     setScrapeBusy(true); setScrapeResults([]); setSelectedResults(new Set()); setScrapeJobId('')
