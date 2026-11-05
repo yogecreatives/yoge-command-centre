@@ -145,7 +145,7 @@ export function Settings({ scope }: { scope?: string } = {}) {
 
 
 function AdminDashboard() {
-  const { businesses, teamProfiles, memberships, updateProfile, setMembership } = useData()
+  const { businesses, teamProfiles, memberships, updateProfile, setMembership, create } = useData()
   const toast = useToast()
   const partners = teamProfiles.filter(p => p.role !== 'owner')
   const [selectedId, setSelectedId] = useState(partners[0]?.user_id ?? '')
@@ -153,6 +153,7 @@ function AdminDashboard() {
   const [name, setName] = useState('')
   const [position, setPosition] = useState('')
   const [avatar, setAvatar] = useState('')
+  const [newWorkspace, setNewWorkspace] = useState('')
 
   useEffect(() => {
     if (!selected) return
@@ -213,6 +214,17 @@ function AdminDashboard() {
             <p className="foot">The partner sees only assigned workspaces on Home. Data inside an assigned workspace is shared with you.</p>
           </>
         )}
+        <div className="section-title" style={{padding:'14px 0 7px'}}><span>Workspaces</span></div>
+        <div className="capture">
+          <input className="input" value={newWorkspace} onChange={e => setNewWorkspace(e.target.value)} placeholder="New workspace name" />
+          <button className="btn primary" disabled={!newWorkspace.trim()} onClick={async () => {
+            const name = newWorkspace.trim()
+            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+            const res = await create('businesses', { name, slug, description: '', symbol: '◈', sort_order: businesses.length + 1 })
+            if (res) { setNewWorkspace(''); toast(name + ' workspace created') }
+          }}>+</button>
+        </div>
+        <p className="foot">New workspaces appear on your Home immediately. Assign them to a partner above when ready.</p>
       </div>
     </section>
   )
