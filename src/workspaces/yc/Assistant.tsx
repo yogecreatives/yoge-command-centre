@@ -33,7 +33,7 @@ function buildPrompt(p: Prospect) {
 function fallbackDraft(p: Prospect) {
   const name = p.agency_name || 'there'
   const observation = p.research_summary || (p.wix_detected ? 'I noticed your site is built on Wix.' : 'I came across your website while looking at businesses in your area.')
-  return 'Hi ' + name + ',\\n\\nI came across your business and had a look at your website. ' + observation + ' I work with Yogecreatives, designing and developing Wix Studio websites for businesses.\\n\\nWould you be open to a quick chat about the site?'
+  return 'Hi ' + name + ',\n\nI came across your business and had a look at your website. ' + observation + ' I work with Yogecreatives, designing and developing Wix Studio websites for businesses.\n\nWould you be open to a quick chat about the site?'
 }
 
 export function YcAssistant({ bizId }: { bizId: string }) {
@@ -52,7 +52,7 @@ export function YcAssistant({ bizId }: { bizId: string }) {
   const selected = approved.find(p => p.id === selectedId) || approved[0] || null
 
   const saveSettings = () => {
-    localStorage.setItem('yoge_ollama_url', endpoint.replace(/\\/$/, ''))
+    localStorage.setItem('yoge_ollama_url', endpoint.replace(/\/$/, ''))
     localStorage.setItem('yoge_ollama_model', model)
     setStatus('Ollama settings saved locally.')
   }
@@ -62,7 +62,7 @@ export function YcAssistant({ bizId }: { bizId: string }) {
     setStatus('Generating with local Ollama…')
     const prompt = buildPrompt(selected)
     try {
-      const response = await fetch(endpoint.replace(/\\/$/, '') + '/api/generate', {
+      const response = await fetch(endpoint.replace(/\/$/, '') + '/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model, prompt, stream: false, options: { temperature: 0.4 } }),
