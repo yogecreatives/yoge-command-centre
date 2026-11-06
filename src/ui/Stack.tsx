@@ -1,4 +1,5 @@
 import { ReactNode, useRef, useState } from 'react'
+import { Icon } from './Icon'
 
 export interface DeckItem { id: string; label: string; title: string; sub?: string; badge?: string; tone?: 'red' | '' }
 
@@ -43,7 +44,7 @@ export function WalletStack({ cards, onOpen }: { cards: WalletCard[]; onOpen: (i
     <div className="wall" style={{ height: 96 * (cards.length - 1) + 124 }}>
       {cards.map((c, i) => (
         <button key={c.id} className={`w ${c.hi ? 'hi' : ''}`} style={{ top: i * 96, zIndex: i + 1 }} onClick={() => onOpen(c.id)}>
-          <div className="nm">{c.name}<span>{c.chip}</span><i aria-hidden="true">›</i></div>
+          <div className="nm">{c.name}<span>{c.chip}</span><i className="w-arrow" aria-hidden="true"><Icon name="chevron" size={17} /></i></div>
           <div className="in">{c.info}</div>
           {i === cards.length - 1 && c.mini && <div className="mini">{c.mini.map(([n, l]) => <div key={l}><b>{n}</b><span>{l}</span></div>)}</div>}
         </button>
@@ -53,9 +54,13 @@ export function WalletStack({ cards, onOpen }: { cards: WalletCard[]; onOpen: (i
 }
 
 export function PillNav({ tabs, active, onGo }: { tabs: [string, string][]; active: string; onGo: (id: string) => void }) {
+  const icons: Record<string, string> = { home: 'today', overview: 'today', tasks: 'tasks', pipeline: 'folder', projects: 'folder', more: 'more', calendar: 'calendar', inbox: 'mail', followups: 'follow' }
   return (
     <nav className="pillnav" aria-label="Main navigation">
-      {tabs.map(([id, label]) => <button key={id} className={id === active ? 'on' : ''} aria-current={id === active ? 'page' : undefined} onClick={() => onGo(id)}>{label}</button>)}
+      {tabs.map(([id, label]) => <button key={id} className={id === active ? 'on' : ''} aria-current={id === active ? 'page' : undefined} onClick={() => onGo(id)}>
+        <span className="pillnav-icon"><Icon name={icons[id] || 'folder'} size={19} /></span>
+        <span className="pillnav-label">{label}</span>
+      </button>)}
     </nav>
   )
 }
