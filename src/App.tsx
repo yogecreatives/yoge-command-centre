@@ -39,7 +39,7 @@ function Gate() {
 }
 
 function Shell() {
-  const { state, error, online, busy, notifications, reload } = useData()
+  const { state, error, online, busy, reload } = useData()
   const open = useEditor()
   const route = useRoute()
   const path = route.split('?')[0]
