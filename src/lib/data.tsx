@@ -2,15 +2,15 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import { supabase } from './supabase'
 import { useAuth } from './auth'
 import { useToast } from '../ui/toast'
-import { Activity, AppNotification, Business, Expense, FollowUp, Idea, Income, Project, Prospect, Referrer, Settings, Status, Task, Profile, WorkspaceMembership } from './types'
+import { Activity, AppNotification, Business, Expense, FollowUp, Idea, Income, Project, Referrer, Settings, Status, Task, Profile, WorkspaceMembership } from './types'
 
 type Tables = {
   tasks: Task[]; follow_ups: FollowUp[]; projects: Project[]; ideas: Idea[]; notifications: AppNotification[]
-  referrers: Referrer[]; prospects: Prospect[]; prospect_activities: Activity[]; income_entries: Income[]; expenses: Expense[]
+  referrers: Referrer[]; income_entries: Income[]; expenses: Expense[]
 }
 export type TableKey = keyof Tables
-const TABLES: TableKey[] = ['tasks', 'follow_ups', 'projects', 'ideas', 'notifications', 'referrers', 'prospects', 'prospect_activities', 'income_entries', 'expenses']
-const empty: Tables = { tasks: [], follow_ups: [], projects: [], ideas: [], notifications: [], referrers: [], prospects: [], prospect_activities: [], income_entries: [], expenses: [] }
+const TABLES: TableKey[] = ['tasks', 'follow_ups', 'projects', 'ideas', 'notifications', 'referrers', 'income_entries', 'expenses']
+const empty: Tables = { tasks: [], follow_ups: [], projects: [], ideas: [], notifications: [], referrers: [], income_entries: [], expenses: [] }
 
 interface DataCtx {
   state: 'loading' | 'ready' | 'error'
@@ -26,7 +26,7 @@ interface DataCtx {
   bizById: (id: string | null | undefined) => Business | undefined
   bizBySlug: (slug: string) => Business | undefined
   tasks: Task[]; followUps: FollowUp[]; projects: Project[]; ideas: Idea[]; notifications: AppNotification[]
-  referrers: Referrer[]; prospects: Prospect[]; activities: Activity[]; income: Income[]; expenses: Expense[]
+  referrers: Referrer[]; income: Income[]; expenses: Expense[]
   settings: Settings | null
   create: (table: TableKey, values: Record<string, unknown>) => Promise<any | null>
   update: (table: TableKey, id: string, values: Record<string, unknown>) => Promise<any | null>
@@ -66,7 +66,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const loaded = useRef(false)
 
   const load = useCallback(async () => {
-    const [b, me, profs, memberships, t, f, p, i, n, s, rf, pr, ac, inc, ex] = await Promise.all([
+    const [b, me, profs, memberships, t, f, p, i, n, s, rf, inc, ex] = await Promise.all([
       supabase.from('businesses').select('*').order('sort_order'),
       supabase.from('profiles').select('*').eq('user_id', uid).maybeSingle(),
       supabase.from('profiles').select('*').order('full_name'),
@@ -78,16 +78,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
       supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(200),
       supabase.from('user_settings').select('*').maybeSingle(),
       supabase.from('referrers').select('*'),
-      supabase.from('prospects').select('*'),
-      supabase.from('prospect_activities').select('*').order('created_at', { ascending: false }).limit(5000),
       supabase.from('income_entries').select('*'),
       supabase.from('expenses').select('*'),
     ])
-    const failed = [b, me, profs, memberships, t, f, p, i, n, s, rf, pr, ac, inc, ex].find(r => r.error)
-    if (failed?.error) {
-      const m = failed.error.message
-      throw new Error(/referrers|prospects|prospect_activities|income_entries|expenses/.test(m) ? 'The database needs the latest update. Run supabase/migration_002.sql and supabase/migration_003.sql in the Supabase SQL Editor, then reload. (' + m + ')' : m)
-    }
+    const failed = [b, me, profs, memberships, t, f, p, i, n, s, rf, inc, ex].find(r => r.error)
+    if (failed?.error) throw new Error(failed.error.message)
+
     const myProfile = (me.data ?? null) as Profile | null
     const allBusinesses = (b.data ?? []) as Business[]
     const myMemberships = (memberships.data ?? []) as WorkspaceMembership[]
@@ -100,8 +96,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setProfile(myProfile)
     setTeamProfiles((profs.data ?? []) as Profile[])
     setMemberships(myMemberships)
-    setDb({ tasks: t.data as Task[], follow_ups: f.data as FollowUp[], projects: p.data as Project[], ideas: i.data as Idea[], notifications: n.data as AppNotification[],
-      referrers: rf.data as Referrer[], prospects: pr.data as Prospect[], prospect_activities: ac.data as Activity[], income_entries: inc.data as Income[], expenses: ex.data as Expense[] })
+    setDb({
+      tasks: t.data as Task[], follow_ups: f.data as FollowUp[], projects: p.data as Project[], ideas: i.data as Idea[],
+      notifications: n.data as AppNotification[], referrers: rf.data as Referrer[], income_entries: inc.data as Income[], expenses: ex.data as Expense[]
+    })
     setSettings((s.data ?? null) as Settings | null)
   }, [uid])
 
@@ -143,32 +141,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const ch = supabase.channel('yoge-sync-' + uid)
     ch.on('postgres_changes', { event: '*', schema: 'public', table: 'workspace_memberships' }, () => { void load() })
     ch.on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => { void load() })
-    for (const table of TABLES) {
-      ch.on('postgres_changes', { event: '*', schema: 'public', table }, (p: any) => {
-        if (p.eventType === 'DELETE') removeLocal(table, p.old.id)
-        else upsertLocal(table, p.new)
-      })
-    }
+    for (const table of TABLES) ch.on('postgres_changes', { event: '*', schema: 'public', table }, (p: any) => {
+      if (p.eventType === 'DELETE') removeLocal(table, p.old.id)
+      else upsertLocal(table, p.new)
+    })
     ch.on('postgres_changes', { event: '*', schema: 'public', table: 'user_settings' }, (p: any) => { if (p.new) setSettings(p.new) })
     ch.subscribe()
     return () => { supabase.removeChannel(ch) }
   }, [state, uid, upsertLocal, removeLocal, load])
 
   useEffect(() => {
-    const on = () => { setOnline(true); reload() }
-    const off = () => setOnline(false)
+    const on = () => { setOnline(true); reload() }, off = () => setOnline(false)
     const vis = () => { if (document.visibilityState === 'visible' && loaded.current) reload() }
-    window.addEventListener('online', on); window.addEventListener('offline', off)
-    document.addEventListener('visibilitychange', vis)
+    window.addEventListener('online', on); window.addEventListener('offline', off); document.addEventListener('visibilitychange', vis)
     return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); document.removeEventListener('visibilitychange', vis) }
   }, [reload])
 
   const guard = useCallback(async <T,>(fn: () => Promise<T>, fallback: T): Promise<T> => {
     if (!navigator.onLine) { toast('You are offline. Changes are not saved until you reconnect.', 'error'); return fallback }
     setBusy(b => b + 1)
-    try { return await fn() }
-    catch (e: any) { toast(e.message || 'Something went wrong', 'error'); return fallback }
-    finally { setBusy(b => b - 1) }
+    try { return await fn() } catch (e: any) { toast(e.message || 'Something went wrong', 'error'); return fallback } finally { setBusy(b => b - 1) }
   }, [toast])
 
   const create: DataCtx['create'] = (table, values) => guard(async () => {
@@ -196,13 +188,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     removeLocal(table, id); return true
   }, false)
 
-  const setTaskStatus = async (t: Task, s: Status) => {
-    await update('tasks', t.id, { status: s, completed_at: s === 'completed' ? new Date().toISOString() : null })
-  }
-  const toggleTask = async (t: Task) => {
-    if (t.status !== 'completed') return setTaskStatus(t, 'completed')
-    return setTaskStatus(t, 'pending')
-  }
+  const setTaskStatus = async (t: Task, s: Status) => { await update('tasks', t.id, { status: s, completed_at: s === 'completed' ? new Date().toISOString() : null }) }
+  const toggleTask = async (t: Task) => { if (t.status !== 'completed') return setTaskStatus(t, 'completed'); return setTaskStatus(t, 'pending') }
   const completeFollowUp = async (f: FollowUp) => { await update('follow_ups', f.id, { status: 'completed', completed_at: new Date().toISOString() }) }
   const reopenFollowUp = async (f: FollowUp) => { await update('follow_ups', f.id, { status: 'open', completed_at: null }) }
   const rescheduleFollowUp = async (f: FollowUp, date: string) => { await update('follow_ups', f.id, { follow_up_date: date, status: 'open', completed_at: null }) }
@@ -210,32 +197,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateProfile = async (userId: string, values: Record<string, unknown>) => guard(async () => {
     const { data, error: e } = await supabase.from('profiles').update(values).eq('user_id', userId).select().single()
     if (e) throw new Error(e.message)
-    setTeamProfiles(xs => xs.map(x => x.user_id === userId ? data as Profile : x))
-    if (userId === uid) setProfile(data as Profile)
+    setTeamProfiles(xs => xs.map(x => x.user_id === userId ? data as Profile : x)); if (userId === uid) setProfile(data as Profile)
     return true
   }, false)
   const createBusiness = async (values: Record<string, unknown>) => guard(async () => {
     const { data, error: e } = await supabase.from('businesses').insert({ ...values, user_id: uid }).select().single()
-    if (e) throw new Error(e.message)
-    setBusinesses(xs => [...xs, data as Business].sort((a,b) => a.sort_order - b.sort_order))
-    return data as Business
+    if (e) throw new Error(e.message); setBusinesses(xs => [...xs, data as Business].sort((a,b) => a.sort_order - b.sort_order)); return data as Business
   }, null)
-
   const createPartner = async (values: { email: string; password: string; full_name: string; position?: string; avatar_url?: string; workspace_ids?: string[] }) => guard(async () => {
     const { data, error: e } = await supabase.functions.invoke('create-partner', { body: values })
-    if (e) {
-      let message = e.message
-      try {
-        const body = await e.context?.json()
-        if (body?.error) message = body.error
-      } catch {}
-      throw new Error(message)
-    }
+    if (e) throw new Error(e.message)
     if (!data?.ok) throw new Error(data?.error || 'Could not create partner account')
-    await load()
-    return data
+    await load(); return data
   }, null)
-
   const setMembership = async (userId: string, businessId: string, enabled: boolean) => guard(async () => {
     if (enabled) {
       const { error: e } = await supabase.from('workspace_memberships').upsert({ user_id: userId, business_id: businessId, role: 'member' }, { onConflict: 'business_id,user_id' })
@@ -245,14 +219,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       if (e) throw new Error(e.message)
     }
     const { data, error: e2 } = await supabase.from('workspace_memberships').select('*')
-    if (e2) throw new Error(e2.message)
-    setMemberships((data ?? []) as WorkspaceMembership[])
-    return true
+    if (e2) throw new Error(e2.message); setMemberships((data ?? []) as WorkspaceMembership[]); return true
   }, false)
   const update_settings = (v: Partial<Settings>) => guard(async () => {
     const { data, error: e } = await supabase.from('user_settings').update(v).eq('user_id', uid).select().single()
-    if (e) throw new Error(e.message)
-    setSettings(data as Settings)
+    if (e) throw new Error(e.message); setSettings(data as Settings)
   }, undefined)
 
   useEffect(() => {
@@ -265,12 +236,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const bizMap = useMemo(() => new Map(businesses.map(b => [b.id, b])), [businesses])
   const value: DataCtx = {
     state, error, online, busy, email: session!.user.email ?? '', businesses, profile, teamProfiles, memberships, isAdmin: profile?.role === 'owner',
-    bizById: id => (id ? bizMap.get(id) : undefined),
-    bizBySlug: slug => businesses.find(b => b.slug === slug),
+    bizById: id => (id ? bizMap.get(id) : undefined), bizBySlug: slug => businesses.find(b => b.slug === slug),
     tasks: db.tasks, followUps: db.follow_ups, projects: db.projects, ideas: db.ideas, notifications: db.notifications,
-    referrers: db.referrers, prospects: db.prospects, activities: db.prospect_activities, income: db.income_entries, expenses: db.expenses,
-    settings, create, createMany, update, remove, setTaskStatus, toggleTask, completeFollowUp, reopenFollowUp, rescheduleFollowUp,
-    updateSettings, updateProfile, setMembership, createBusiness, createPartner, reload, signOut: async () => { await supabase.auth.signOut() },
+    referrers: db.referrers, income: db.income_entries, expenses: db.expenses, settings, create, createMany, update, remove,
+    setTaskStatus, toggleTask, completeFollowUp, reopenFollowUp, rescheduleFollowUp, updateSettings, updateProfile, setMembership,
+    createBusiness, createPartner, reload, signOut: async () => { await supabase.auth.signOut() },
   }
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
