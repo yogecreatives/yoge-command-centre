@@ -18,6 +18,9 @@ const P: Record<string, string> = {
   money: 'M12 3v18M16.5 7.5C15.6 6.5 14 6 12.2 6 9.9 6 8.2 7.1 8.2 8.8c0 4 8 1.8 8 6.2 0 1.8-1.8 3-4.2 3-1.9 0-3.5-.6-4.5-1.8',
   users: 'M16 20v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1M9.5 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM21 20v-1a4 4 0 00-3-3.9M16 4.2a3.5 3.5 0 010 6.6',
   folder: 'M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z',
+  briefcase: 'M4 8h16v12H4zM8 8V5h8v3M4 13h16M10 13v2h4v-2',
+  sparkles: 'M12 3l1.4 5.1L18 10l-4.6 1.9L12 17l-1.4-5.1L6 10l4.6-1.9L12 3zM19 16l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16z',
+  layers: 'M12 3l9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 16l9 5 9-5'
 }
 export function Icon({ name, size = 22 }: { name: keyof typeof P | string; size?: number }) {
   return (
