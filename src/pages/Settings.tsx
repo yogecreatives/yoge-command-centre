@@ -8,43 +8,41 @@ import { Segmented } from '../ui/Sheet'
 import { getTheme, setTheme, ThemePref } from '../lib/theme'
 import { runImport, ImportFile } from '../lib/importer'
 import { parseStarter, starterText } from '../lib/projectTasks'
-import { Templates } from '../lib/types'
 
 const IMPORT_KEY = 'yoge_v2_imported'
 const BIZ_SLUGS = ['white-label', 'yogeworks', 'yogecreatives', 'yogefolio', 'other']
 
 export function Settings({ scope }: { scope?: string } = {}) {
-  const { settings, updateSettings, email, signOut, online, businesses, createMany, referrers, prospects, projects, income, reload, isAdmin } = useData()
+  const { settings, updateSettings, email, signOut, online, businesses, createMany, referrers, projects, income, reload, isAdmin } = useData()
   const toast = useToast()
   const [raw, setRaw] = useState('')
   const [importing, setImporting] = useState(false)
   const [theme, setThemeState] = useState<ThemePref>(getTheme())
-  const [sender, setSender] = useState(settings?.sender_name ?? '')
-  const [tplKey, setTplKey] = useState<keyof Templates>('email_1')
-  const [tpl, setTpl] = useState(settings?.outreach_templates ?? null)
   const [starter, setStarter] = useState(starterText(settings?.project_task_template ?? []))
   const [bulk, setBulk] = useState<ImportFile | null>(null)
   const [bulkBusy, setBulkBusy] = useState(false)
+
   const readBulk = async (f: File) => {
     try { const d = JSON.parse(await f.text()) as ImportFile; if (!d || d.version !== 1) throw new Error('bad'); setBulk(d) }
     catch { toast('That is not a YOGE import file.', 'error') }
   }
+
   const doBulk = async () => {
     if (!bulk) return; setBulkBusy(true)
     try {
-      const r = await runImport(bulk, { businesses, referrers, prospects, projects, income })
+      const r = await runImport(bulk, { businesses, referrers, projects, income })
       await reload(); setBulk(null)
-      toast(`Imported ${r.projects} projects, ${r.prospects} agencies, ${r.income} income entries, ${r.referrers} referrers${r.skipped ? ` (${r.skipped} duplicates skipped)` : ''}`)
+      toast(`Imported ${r.projects} projects, ${r.income} income entries, ${r.referrers} referrers${r.skipped ? ` (${r.skipped} duplicates skipped)` : ''}`)
     } catch (e: any) { toast(e.message || 'Import failed', 'error') }
     setBulkBusy(false)
   }
+
   const zones: string[] = (Intl as any).supportedValuesOf?.('timeZone') ?? ['Asia/Kuala_Lumpur', 'Asia/Kolkata', 'Asia/Singapore', 'UTC']
   const toggle = (k: keyof NonNullable<typeof settings>, label: string, sub?: string) => (
     <label className="row switch"><div className="row-main"><div className="row-title">{label}</div>{sub && <div className="row-sub">{sub}</div>}</div>
       <input type="checkbox" checked={Boolean(settings?.[k])} onChange={e => updateSettings({ [k]: e.target.checked })} /></label>
   )
 
-  // Imports the V2 prototype's localStorage data (pasted as JSON) into the cloud database. Never deletes anything.
   const doImport = async () => {
     let data: any
     try { data = JSON.parse(raw) } catch { return toast('That is not valid JSON. Copy it again from the prototype.', 'error') }
@@ -85,34 +83,10 @@ export function Settings({ scope }: { scope?: string } = {}) {
         {toggle('remind_projects', 'Project deadlines', 'Always at least 3 days ahead')}
         {toggle('remind_overdue', 'Overdue alerts', 'Once per overdue item')}
         <label className="row"><div className="row-main"><div className="row-title">Remind me ahead by</div></div>
-          <select className="pill" value={settings?.remind_days_before ?? 1} onChange={e => updateSettings({ remind_days_before: Number(e.target.value) })}>
-            {[0, 1, 2, 3, 5, 7, 14].map(n => <option key={n} value={n}>{n === 0 ? 'On the day' : `${n} day${n > 1 ? 's' : ''}`}</option>)}
-          </select></label>
+          <select className="pill" value={settings?.remind_days_before ?? 1} onChange={e => updateSettings({ remind_days_before: Number(e.target.value) })}>{[0,1,2,3,5,7,14].map(n => <option key={n} value={n}>{n === 0 ? 'On the day' : `${n} day${n > 1 ? 's' : ''}`}</option>)}</select></label>
         <label className="row"><div className="row-main"><div className="row-title">Time zone</div></div>
-          <select className="pill" value={settings?.timezone ?? 'UTC'} onChange={e => updateSettings({ timezone: e.target.value })}>
-            {[...new Set([settings?.timezone ?? 'UTC', ...zones])].map(z => <option key={z}>{z}</option>)}
-          </select></label>
+          <select className="pill" value={settings?.timezone ?? 'UTC'} onChange={e => updateSettings({ timezone: e.target.value })}>{[...new Set([settings?.timezone ?? 'UTC', ...zones])].map(z => <option key={z}>{z}</option>)}</select></label>
       </div><p className="foot">Reminders are created by the database every 15 minutes and appear in Notifications on every device.</p></section>
-
-      {!scope && (<>
-      <section className="section"><div className="section-title"><span>Agency outreach</span></div><div className="group pad">
-        <div className="two">
-          <label className="fld"><span>Your name (email signature)</span><input className="input" value={sender} onChange={e => setSender(e.target.value)} onBlur={() => sender !== settings?.sender_name && updateSettings({ sender_name: sender })} /></label>
-          <label className="fld"><span>Emails per day</span><input className="input" type="number" min={1} max={100} defaultValue={settings?.daily_new_limit ?? 10} onBlur={e => { const n = Math.min(100, Math.max(1, Number(e.target.value) || 10)); if (n !== settings?.daily_new_limit) updateSettings({ daily_new_limit: n }) }} /></label>
-        </div>
-        <div className="row-sub">Follow-up days after Email 1 (Follow-up 1, Follow-up 2, last nudge)</div>
-        <div className="three">{[0, 1, 2].map(i => <input key={i} className="input" type="number" min={1} max={90} defaultValue={settings?.outreach_gaps?.[i] ?? [3, 7, 14][i]} onBlur={e => { const g = [...(settings?.outreach_gaps ?? [3, 7, 14])]; g[i] = Math.max(1, Number(e.target.value) || g[i]); const ok = g[0] < g[1] && g[1] < g[2]; if (!ok) return toast('Each follow-up must come after the one before.', 'error'); updateSettings({ outreach_gaps: g }) }} />)}</div>
-        <label className="row switch" style={{ padding: 0, minHeight: 40 }}><div className="row-main"><div className="row-title">Skip weekends</div></div><input type="checkbox" checked={Boolean(settings?.skip_weekends)} onChange={e => updateSettings({ skip_weekends: e.target.checked })} /></label>
-        {tpl && <>
-          <select className="input" value={tplKey} onChange={e => setTplKey(e.target.value as keyof Templates)}><option value="email_1">Email 1</option><option value="follow_up_1">Follow-up 1</option><option value="follow_up_2">Follow-up 2</option><option value="last_nudge">Last nudge</option></select>
-          <input className="input" value={tpl[tplKey].subject} onChange={e => setTpl({ ...tpl, [tplKey]: { ...tpl[tplKey], subject: e.target.value } })} placeholder="Subject" />
-          <textarea className="input" rows={9} value={tpl[tplKey].body} onChange={e => setTpl({ ...tpl, [tplKey]: { ...tpl[tplKey], body: e.target.value } })} />
-          <div className="row-sub">Placeholders: {'{agency}'} {'{contact}'} {'{sender}'}</div>
-          <button className="btn block" onClick={async () => { await updateSettings({ outreach_templates: tpl }); toast('Templates saved') }}>Save templates</button>
-        </>}
-      </div></section>
-
-      </>)}
 
       <section className="section"><div className="section-title"><span>Starter tasks for new projects</span></div><div className="group pad">
         <div className="row-sub">One per line: task | days after the project date</div>
@@ -121,9 +95,9 @@ export function Settings({ scope }: { scope?: string } = {}) {
       </div></section>
 
       <section className="section"><div className="section-title"><span>Import prepared data file</span></div><div className="group pad">
-        <p className="row-sub">Upload <code>yoge-import-data.json</code> to add your projects, referrers, agencies and Wix commission. Existing records are never changed, and duplicates are skipped.</p>
+        <p className="row-sub">Upload <code>yoge-import-data.json</code> to add your projects, referrers and Wix commission. Existing records are never changed, and duplicates are skipped.</p>
         {!bulk ? <label className="btn block">Choose file<input type="file" accept="application/json,.json" hidden onChange={e => { const f = e.target.files?.[0]; if (f) readBulk(f); e.target.value = '' }} /></label>
-          : <><p className="row-sub">Ready: <b>{bulk.projects.length}</b> projects · <b>{bulk.prospects.length}</b> agencies · <b>{bulk.referrers.length}</b> referrers · <b>{bulk.income.length}</b> income entries</p>
+          : <><p className="row-sub">Ready: <b>{bulk.projects.length}</b> projects · <b>{bulk.referrers.length}</b> referrers · <b>{bulk.income.length}</b> income entries</p>
             <button className="btn primary block" disabled={bulkBusy} onClick={doBulk}>{bulkBusy ? 'Importing…' : 'Import now'}</button><button className="btn block" onClick={() => setBulk(null)}>Cancel</button></>}
       </div></section>
 
@@ -136,142 +110,22 @@ export function Settings({ scope }: { scope?: string } = {}) {
       {!scope && isAdmin && <AdminDashboard />}
 
       <section className="section"><div className="section-title"><span>Account</span></div><div className="group">
-        <div className="row"><div className="row-main"><div className="row-title">{email}</div><div className="row-sub">{online ? 'Online · changes sync live across devices' : 'Offline · changes are not saved until you reconnect'}</div></div></div>
-        <button className="row danger-row" onClick={signOut}>Sign out</button>
+        <div className="row"><div className="row-main"><div className="row-title">{email}</div><div className="row-sub">{online ? 'Online · changes sync live across devices' : 'Offline'}</div></div></div>
+        <button className="btn block" onClick={() => signOut()}>Sign out</button>
       </div></section>
     </>
   )
+}
 
 function AdminDashboard() {
-  const { businesses, teamProfiles, memberships, updateProfile, setMembership, createBusiness, createPartner } = useData()
-  const toast = useToast()
-  const partners = teamProfiles.filter(p => p.role !== 'owner')
-  const [selectedId, setSelectedId] = useState(partners[0]?.user_id ?? '')
-  const selected = partners.find(p => p.user_id === selectedId) ?? null
-  const [name, setName] = useState('')
-  const [position, setPosition] = useState('')
-  const [avatar, setAvatar] = useState('')
-  const [newWorkspace, setNewWorkspace] = useState('')
-  const [newEmail, setNewEmail] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [newName, setNewName] = useState('')
-  const [newPosition, setNewPosition] = useState('Sales Partner')
-  const [newAvatar, setNewAvatar] = useState('')
-  const [newAccess, setNewAccess] = useState<string[]>([])
-  const [creating, setCreating] = useState(false)
-
-  useEffect(() => {
-    if (!selected) return
-    setName(selected.full_name ?? '')
-    setPosition(selected.position ?? '')
-    setAvatar(selected.avatar_url ?? '')
-  }, [selectedId, selected?.user_id])
-
-  const assigned = (businessId: string) =>
-    memberships.some(m => m.user_id === selectedId && m.business_id === businessId)
-
-  const saveProfile = async () => {
-    if (!selected) return
-    const ok = await updateProfile(selected.user_id, {
-      full_name: name.trim() || null,
-      position: position.trim() || null,
-      avatar_url: avatar.trim() || null,
-    })
-    if (ok) toast('Partner profile saved')
-  }
-
+  const { teamProfiles, businesses, memberships, setMembership } = useData()
   return (
-    <section className="section">
-      <div className="section-title"><span>Admin · Partners</span><span>Owner controls</span></div>
-      <div className="group pad">
-        <div>
-          <div className="row-title">Create partner account</div>
-          <p className="row-sub" style={{whiteSpace:'normal'}}>Create the login yourself. The partner can sign in immediately with the email and password you set here.</p>
-          <div className="two">
-            <label className="fld"><span>Name</span><input className="input" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Partner name" /></label>
-            <label className="fld"><span>Position</span><input className="input" value={newPosition} onChange={e => setNewPosition(e.target.value)} placeholder="Sales Partner" /></label>
-          </div>
-          <div className="two">
-            <label className="fld"><span>Email</span><input className="input" type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="partner@example.com" autoComplete="off" /></label>
-            <label className="fld"><span>Password</span><input className="input" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="At least 6 characters" autoComplete="new-password" /></label>
-          </div>
-          <label className="fld"><span>Profile image URL (optional)</span><input className="input" value={newAvatar} onChange={e => setNewAvatar(e.target.value)} placeholder="https://…" /></label>
-          <div className="section-title" style={{padding:'6px 0 7px'}}><span>Workspace access</span></div>
-          <div className="group">
-            {businesses.map(b => <label key={b.id} className="row switch">
-              <div className="row-main"><div className="row-title">{b.name}</div><div className="row-sub">Give this partner access</div></div>
-              <input type="checkbox" checked={newAccess.includes(b.id)} onChange={e => setNewAccess(xs => e.target.checked ? [...xs, b.id] : xs.filter(id => id !== b.id))} />
-            </label>)}
-          </div>
-          <button className="btn primary block" disabled={creating || !newName.trim() || !newEmail.trim() || newPassword.length < 6} onClick={async () => {
-            setCreating(true)
-            const res = await createPartner({
-              email: newEmail.trim(),
-              password: newPassword,
-              full_name: newName.trim(),
-              position: newPosition.trim(),
-              avatar_url: newAvatar.trim(),
-              workspace_ids: newAccess,
-            })
-            if (res) {
-              setNewEmail(''); setNewPassword(''); setNewName(''); setNewPosition('Sales Partner'); setNewAvatar(''); setNewAccess([])
-              setSelectedId(res.user_id)
-              toast('Partner account created. You can give them the email and password you entered.')
-            }
-            setCreating(false)
-          }}>{creating ? 'Creating account…' : 'Create partner account'}</button>
-        </div>
-        <div style={{height:1,background:'var(--line)',margin:'18px 0'}} />
-        {!partners.length ? (
-          <div>
-            <div className="row-title">No other partner accounts yet</div>
-            <p className="row-sub" style={{whiteSpace:'normal'}}>Create one above. Existing partner accounts can be managed below.</p>
-          </div>
-        ) : (
-          <>
-            <label className="fld"><span>Partner account</span>
-              <select className="input" value={selectedId} onChange={e => setSelectedId(e.target.value)}>
-                {partners.map(p => <option key={p.user_id} value={p.user_id}>{p.full_name || p.email || p.user_id}</option>)}
-              </select>
-            </label>
-            {selected && <p className="row-sub" style={{whiteSpace:'normal'}}>Login: {selected.email || 'Email not available'}</p>}
-            <div className="two">
-              <label className="fld"><span>Name</span><input className="input" value={name} onChange={e => setName(e.target.value)} /></label>
-              <label className="fld"><span>Position</span><input className="input" value={position} onChange={e => setPosition(e.target.value)} placeholder="Sales Partner" /></label>
-            </div>
-            <label className="fld"><span>Profile image URL</span><input className="input" value={avatar} onChange={e => setAvatar(e.target.value)} placeholder="https://…" /></label>
-            <button className="btn primary block" onClick={saveProfile}>Save partner profile</button>
-
-            <div className="section-title" style={{padding:'10px 0 7px'}}><span>Workspace access</span></div>
-            <div className="group">
-              {businesses.map(b => (
-                <label key={b.id} className="row switch">
-                  <div className="row-main"><div className="row-title">{b.name}</div><div className="row-sub">Shared workspace access</div></div>
-                  <input type="checkbox" checked={assigned(b.id)} onChange={async e => {
-                    const ok = await setMembership(selectedId, b.id, e.target.checked)
-                    if (ok) toast((e.target.checked ? b.name + ' access granted' : b.name + ' access removed'))
-                  }} />
-                </label>
-              ))}
-            </div>
-            <p className="foot">The partner sees only assigned workspaces on Home. Data inside an assigned workspace is shared with you.</p>
-          </>
-        )}
-        <div className="section-title" style={{padding:'14px 0 7px'}}><span>Workspaces</span></div>
-        <div className="capture">
-          <input className="input" value={newWorkspace} onChange={e => setNewWorkspace(e.target.value)} placeholder="New workspace name" />
-          <button className="btn primary" disabled={!newWorkspace.trim()} onClick={async () => {
-            const name = newWorkspace.trim()
-            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-            const res = await createBusiness({ name, slug, description: '', symbol: '◈', sort_order: businesses.length + 1 })
-            if (res) { setNewWorkspace(''); toast(name + ' workspace created') }
-          }}>+</button>
-        </div>
-        <p className="foot">New workspaces appear on your Home immediately. Assign them to a partner above when ready.</p>
-      </div>
-    </section>
+    <section className="section"><div className="section-title"><span>Partner access</span></div><div className="group">
+      {teamProfiles.filter(p => p.role === 'member').map(p => (
+        <div key={p.user_id} className="row"><div className="row-main"><div className="row-title">{p.full_name || p.email}</div>
+          <div className="row-sub">{businesses.map(b => <label key={b.id} style={{ marginRight: 10 }}><input type="checkbox" checked={memberships.some(m => m.user_id === p.user_id && m.business_id === b.id)} onChange={e => setMembership(p.user_id, b.id, e.target.checked)} /> {b.name}</label>)}</div>
+        </div></div>
+      ))}
+    </div></section>
   )
 }
-
-}
-
