@@ -1,4 +1,4 @@
--- YOGE migration 003: Yogecreatives workspace (client pipeline, DM history, client contact fields, expenses).
+-- YOGE migration 003: client contact fields and expenses.
 -- Run ONCE in the Supabase SQL Editor AFTER migration_002.sql. Additive only: nothing is deleted or rewritten.
 
 -- Client pipeline stages (shared prospects table; White Label keeps its own stages)
