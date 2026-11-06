@@ -1,9 +1,6 @@
 import { ReactNode, useCallback, useState } from 'react'
 import { useRoute } from '../lib/route'
 import { EditorCtx, EditorKind, useEditor } from './editorContext'
-import { ProspectSheet } from './ProspectSheet'
-import { RepliedSheet } from './RepliedSheet'
-import { LeadSheet } from './LeadSheet'
 import { ReferrerForm, ReferrerPicker } from './Referrers'
 import { Segmented, Sheet } from '../ui/Sheet'
 import { useData } from '../lib/data'
@@ -38,10 +35,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       {cur?.kind === 'task' && <TaskForm key={cur.item?.id ?? 'new'} item={cur.item} defaults={cur.defaults} onClose={close} />}
       {cur?.kind === 'followup' && <FollowUpForm key={cur.item?.id ?? 'new'} item={cur.item} defaults={cur.defaults} onClose={close} />}
       {cur?.kind === 'project' && <ProjectForm key={cur.item?.id ?? 'new'} item={cur.item} defaults={cur.defaults} onClose={close} />}
-      {cur?.kind === 'prospect' && <ProspectSheet key={cur.item?.id ?? 'new'} item={cur.item} defaults={cur.defaults} onClose={close} />}
-      {cur?.kind === 'lead' && <LeadSheet key={cur.item?.id ?? 'new'} item={cur.item} defaults={cur.defaults} onClose={close} />}
       {cur?.kind === 'referrer' && <ReferrerForm key={cur.item?.id ?? 'new'} item={cur.item} onClose={close} />}
-      {cur?.kind === 'replied' && <RepliedSheet item={cur.item} onClose={close} />}
       {cur?.kind === 'idea' && <IdeaForm key={cur.item?.id ?? 'new'} item={cur.item} defaults={cur.defaults} onClose={close} />}
     </EditorCtx.Provider>
   )
@@ -50,7 +44,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
 function NewMenu({ onClose, onPick }: { onClose: () => void; onPick: (k: EditorKind) => void; defaults?: any }) {
   const items: [EditorKind, string, string][] = [
     ['task', 'Task', 'Something to do'], ['followup', 'Follow-up', 'Someone to contact'],
-    ['project', 'Project', 'Client work, payment and referrer'], ['lead', 'Lead', 'Yogecreatives sales pipeline'], ['prospect', 'Agency prospect', 'White Label outreach'], ['idea', 'Idea', 'Capture it, sort it later'],
+    ['project', 'Project', 'Client work, payment and referrer'], ['idea', 'Idea', 'Capture it, sort it later'],
   ]
   return (
     <Sheet title="New" onClose={onClose}>
