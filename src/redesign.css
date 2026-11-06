@@ -52,18 +52,13 @@ body.dots{background-image:none}
 .w:nth-child(4){--c:var(--f-sm);animation-delay:.24s}
 .w .nm{font-size:23px;font-weight:500;letter-spacing:-.04em;line-height:1}
 .w .in,.w.hi .in{color:rgba(23,23,15,.62);opacity:1;margin-top:8px;font-size:12px}
-/* the status chip becomes the folder tab */
+/* workspace status: simple inline pill, no ribbon/tab */
 .wall .w .nm span,.wall .w.hi .nm span,[data-theme="dark"] .wall .w.hi .nm span{
-  position:absolute;top:-26px;height:27px;padding:0 14px;border-radius:12px 12px 0 0;
-  background:var(--c)!important;color:var(--f-ink)!important;
-  display:flex;align-items:center;font-size:11px;font-weight:600;white-space:nowrap}
-.wall .w .nm span::before,.wall .w .nm span::after{content:"";position:absolute;bottom:0;width:12px;height:12px}
-.wall .w .nm span::before{left:-12px;background:radial-gradient(circle at 0 0,transparent 11.5px,var(--c) 12px)}
-.wall .w .nm span::after{right:-12px;background:radial-gradient(circle at 100% 0,transparent 11.5px,var(--c) 12px)}
-.w:nth-child(1) .nm span{left:16px}
-.w:nth-child(2) .nm span{left:100px}
-.w:nth-child(3) .nm span{left:184px}
-.w:nth-child(4) .nm span{left:268px}
+  position:static;height:26px;padding:0 10px;border-radius:14px;
+  background:var(--chip)!important;color:var(--chip-ink)!important;
+  display:inline-flex;align-items:center;font-size:11px;font-weight:600;white-space:nowrap;
+  margin-left:8px;vertical-align:middle}
+.wall .w .nm span::before,.wall .w .nm span::after{display:none}
 .w .mini div{border-left-color:rgba(23,23,15,.15)}
 .w .mini span{color:rgba(23,23,15,.6)}
 @keyframes wrise{from{opacity:0;transform:translateY(24px)}}
