@@ -43,7 +43,7 @@ export function WalletStack({ cards, onOpen }: { cards: WalletCard[]; onOpen: (i
     <div className="wall" style={{ height: 96 * (cards.length - 1) + 124 }}>
       {cards.map((c, i) => (
         <button key={c.id} className={`w ${c.hi ? 'hi' : ''}`} style={{ top: i * 96, zIndex: i + 1 }} onClick={() => onOpen(c.id)}>
-          <div className="nm">{c.name}<span>{c.chip}</span></div>
+          <div className="nm">{c.name}<span>{c.chip}</span><i aria-hidden="true">›</i></div>
           <div className="in">{c.info}</div>
           {i === cards.length - 1 && c.mini && <div className="mini">{c.mini.map(([n, l]) => <div key={l}><b>{n}</b><span>{l}</span></div>)}</div>}
         </button>
