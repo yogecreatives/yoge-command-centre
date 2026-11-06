@@ -19,12 +19,10 @@ import { Ideas } from './pages/Ideas'
 import { Inbox } from './pages/Inbox'
 import { More } from './pages/More'
 import { Settings } from './pages/Settings'
-import { Pipeline } from './pages/Pipeline'
 import { Projects } from './pages/Projects'
 import { Partners } from './pages/Partners'
 import { Money } from './pages/Money'
 import { Home } from './pages/Home'
-import { SalesMachine } from './pages/SalesMachine'
 import { WorkspaceRoute } from './workspaces/Route'
 
 export default function App() {
@@ -41,7 +39,7 @@ function Gate() {
 }
 
 function Shell() {
-  const { state, error, online, busy, notifications, businesses, reload } = useData()
+  const { state, error, online, busy, notifications, reload } = useData()
   const open = useEditor()
   const route = useRoute()
   const path = route.split('?')[0]
@@ -49,20 +47,18 @@ function Shell() {
 
   if (state === 'loading') return <div className="splash"><div className="mark">YOGE</div><p className="date">Loading your workspace…</p></div>
   if (state === 'error') return (
-    <div className="auth"><div className="setup"><div className="mark">YOGE</div><h1>Could not load</h1><p className="err">{error}</p><button className="btn primary block" onClick={() => { location.reload() }}>Try again</button></div></div>
+    <div className="auth"><div className="setup"><div className="mark">YOGE</div><h1>Could not load</h1><p className="err">{error}</p><button className="btn primary block" onClick={() => location.reload()}>Try again</button></div></div>
   )
 
-  const unread = notifications.filter(n => !n.read_at).length
   const parts = path.split('/').filter(Boolean)
   if (path === '/home' || path === '/') return <Home />
   if (path === '/inbox') return <div className="shell2"><div className="page"><Inbox /></div></div>
-  if (path === '/sales-machine') return <SalesMachine />
   if (parts[0] === 'w') return <WorkspaceRoute parts={parts} />
+
   let page
   if (path.startsWith('/b/')) page = <Business key={path} slug={path.slice(3)} />
   else if (path === '/tasks') page = <Tasks />
   else if (path === '/followups') page = <FollowUps />
-  else if (path === '/pipeline') page = <Pipeline />
   else if (path === '/projects') page = <Projects />
   else if (path === '/partners') page = <Partners />
   else if (path === '/money') page = <Money />
@@ -74,7 +70,6 @@ function Shell() {
 
   const activeNav = path === '/home' || path === '/' ? 'home'
     : path.startsWith('/tasks') ? 'tasks'
-    : path.startsWith('/pipeline') ? 'pipeline'
     : path.startsWith('/projects') ? 'projects'
     : 'more'
 
@@ -86,7 +81,7 @@ function Shell() {
         <div className={`sync ${busy ? 'on' : ''}`} aria-live="polite">{busy ? 'Saving…' : ''}</div>
       </main>
       <PillNav
-        tabs={[['home', 'Home'], ['tasks', 'Tasks'], ['pipeline', 'Pipeline'], ['projects', 'Projects'], ['more', 'More']]}
+        tabs={[['home', 'Home'], ['tasks', 'Tasks'], ['projects', 'Projects'], ['more', 'More']]}
         active={activeNav}
         onGo={id => go(id === 'home' ? '/home' : '/' + id)}
       />
