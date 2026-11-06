@@ -183,11 +183,10 @@ export function Home() {
 
       <nav className="home-bottom-nav" aria-label="Workspace navigation">
         <button className="on" onClick={() => go('/home')}><span className="home-nav-icon">⌂</span><b>Home</b></button>
-        {visibleBusinesses(businesses).slice(0, 3).map(b => (
-          <button key={b.slug} onClick={() => go(businessRoute(b.slug))} aria-label={b.name}>
-            <span className="workspace-nav-dot" data-tone={b.slug}></span>
-          </button>
-        ))}
-      </nav>    </div></div>
+        {visibleBusinesses(businesses).slice(0, 3).map(b => {
+          const icon = b.slug === "yogecreatives" ? "briefcase" : b.slug === "yogeworks" ? "sparkles" : "layers"
+          return <button key={b.slug} onClick={() => go(businessRoute(b.slug))} aria-label={b.name}><Icon name={icon} size={21} /></button>
+        })}
+      </nav>   </div></div>
   )
 }
