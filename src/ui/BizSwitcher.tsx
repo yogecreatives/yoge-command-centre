@@ -4,7 +4,7 @@ import { go } from '../lib/route'
 import { businessRoute, visibleBusinesses } from '../lib/workspaces'
 import { Icon } from './Icon'
 
-export function BizSwitcher({ slug, label, current }: { slug?: string; label?: string; current?: 'home' | 'yogecreatives' | 'yogeworks' | 'white-label' | 'sales-machine' }) {
+export function BizSwitcher({ slug, label, current }: { slug?: string; label?: string; current?: 'home' | 'yogecreatives' | 'yogeworks' | 'white-label' }) {
   const { businesses } = useData()
   const [open, setOpen] = useState(false)
   const cur = businesses.find(b => b.slug === slug)
@@ -12,7 +12,6 @@ export function BizSwitcher({ slug, label, current }: { slug?: string; label?: s
   const items = [
     { id: 'home', label: 'Home', path: '/home', sub: 'Command Centre' },
     ...visibleBusinesses(businesses).map(b => ({ id: b.slug, label: b.name, path: businessRoute(b.slug), sub: 'Open workspace' })),
-    { id: 'sales-machine', label: 'Sales Machine', path: '/sales-machine', sub: 'Find, research, approve and sell' },
   ]
   return (
     <div style={{ position: 'relative' }}>
@@ -25,10 +24,7 @@ export function BizSwitcher({ slug, label, current }: { slug?: string; label?: s
           {items.map(item => {
             const isCurrent = item.id === current
             return <button key={item.id} className="row" style={{ width: '100%', border: 0, background: 'transparent', borderRadius: 10 }} onClick={() => { setOpen(false); if (!isCurrent) go(item.path) }}>
-              <span className="row-main">
-                <span className="row-title">{item.label}</span>
-                <span className="row-sub">{isCurrent ? 'Open' : item.sub}</span>
-              </span>
+              <span className="row-main"><span className="row-title">{item.label}</span><span className="row-sub">{isCurrent ? 'Open' : item.sub}</span></span>
               {isCurrent ? <span className="chip lime">Open</span> : <Icon name="chevron" size={15} />}
             </button>
           })}
