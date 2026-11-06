@@ -181,8 +181,6 @@ export function Home() {
         )) : <div className="empty">No recent activity yet.</div>}
       </div>
 
-      <div className="kstats"><div><b>{overdue}</b><span>Overdue</span></div><div><b>{fuDue + wlDue + ycLeadDue + reminderCount}</b><span>Follow-ups & reminders</span></div><div><b>{Math.round(unpaid).toLocaleString()}</b><span>Unpaid</span></div></div>
-
       <nav className="home-bottom-nav" aria-label="Home navigation">
         <button className="on" onClick={() => go('/home')}><span className="home-nav-icon">⌂</span><b>Home</b></button>
         <button onClick={() => go('/tasks')} aria-label="Tasks"><Icon name="tasks" size={20} /></button>
