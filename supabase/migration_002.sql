@@ -1,4 +1,4 @@
--- YOGE migration 002: pipeline, project payments, referrers, income.
+-- YOGE migration 002: project payments, referrers and income.
 -- Run ONCE in Supabase SQL Editor AFTER schema.sql and reminders.sql. Safe to re-run.
 
 -- ---------- referrers (agencies / people who send projects) ----------
