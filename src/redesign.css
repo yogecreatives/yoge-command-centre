@@ -112,3 +112,7 @@ body.dots{background-image:none}
   .home-priority-main b{font-size:16px}
   .home-bottom-nav{margin-left:-8px;margin-right:-8px}
 }
+
+.workspace-section-head{display:flex;align-items:center;justify-content:space-between;margin:28px 4px -4px}
+.workspace-section-head h2{font-size:20px;font-weight:500;letter-spacing:-.03em;margin:0}
+.workspace-section-head span{font-size:13px;color:var(--muted)}
