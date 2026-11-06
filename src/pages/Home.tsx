@@ -101,6 +101,29 @@ export function Home() {
 
   const reminderCount = notifications.filter(n => !n.read_at && n.kind.includes('due')).length
 
+  const priorities = useMemo(() => {
+    const rows: Array<{ id: string; title: string; business: string; tone: string; label: string; route: string }> = []
+    for (const t of T.filter(x => x.due_date && x.status !== 'completed').sort((a,b) => {
+      const ap = a.priority === 'urgent' ? 0 : a.priority === 'high' ? 1 : 2
+      const bp = b.priority === 'urgent' ? 0 : b.priority === 'high' ? 1 : 2
+      return ap - bp || (a.due_date || '').localeCompare(b.due_date || '')
+    })) {
+      const b = businesses.find(x => x.id === t.business_id)
+      rows.push({ id: 't:' + t.id, title: t.title, business: b?.name || 'Workspace', tone: b?.slug === 'yogecreatives' ? 'lime' : b?.slug === 'yogeworks' ? 'lavender' : 'cyan', label: t.priority === 'urgent' || t.priority === 'high' ? 'HIGH' : 'TODAY', route: b ? '/w/' + b.slug + '/tasks?task=' + t.id : '/tasks' })
+    }
+    for (const f of F.filter(x => x.follow_up_date <= today).slice(0, 3)) {
+      const b = businesses.find(x => x.id === f.business_id)
+      rows.push({ id: 'f:' + f.id, title: f.person_name, business: b?.name || 'Workspace', tone: b?.slug === 'yogeworks' ? 'lavender' : 'cyan', label: 'FOLLOW UP', route: b ? '/w/' + b.slug + '/tasks?followup=' + f.id : '/followups' })
+    }
+    return rows.slice(0, 3)
+  }, [T, F, businesses, today])
+
+  const recentActivity = useMemo(() => [...notifications].sort((a,b) => b.created_at.localeCompare(a.created_at)).slice(0, 3), [notifications])
+  const activityAge = (iso: string) => {
+    const mins = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 60000))
+    return mins < 60 ? mins + 'm' : Math.floor(mins / 60) + 'h'
+  }
+
   return (
     <div className="shell2 home-shell"><div className="page">
       <div className="wshead"><BizSwitcher label="Home" current="home" />
@@ -134,18 +157,37 @@ export function Home() {
 
       {cards.length ? <WalletStack cards={cards} onOpen={slug => slug === 'sales-machine' ? go('/sales-machine') : go(businessRoute(slug))} /> : <div className="deck-empty">Setting up your businesses…</div>}
 
-      <div className="sectionlabel">Needs attention</div>
-      <div className="listcard">
-        {attention.length ? attention.map(item => (
-          <button key={item.id} className="row" onClick={() => openAttention(item)}>
-            <span className="tile sm">{item.kind === 'task' ? <Icon name="tasks" size={17} /> : item.kind === 'followup' ? <Icon name="follow" size={17} /> : <Icon name="send" size={17} />}</span>
-            <div className="row-main"><div className="row-title">{item.title}</div><div className="row-sub">{item.sub}</div></div>
-            <span className={`chip ${item.overdue ? 'red' : item.date === today ? 'amber' : ''}`}>{item.overdue ? 'Overdue' : item.date === today ? 'Today' : item.date ? dueLabel(item.date, today) : 'Pending'}</span>
+
+      <div className="home-section-head"><h2>Today's priorities</h2><button onClick={() => go('/tasks')}>All workspaces</button></div>
+      <div className="home-listcard">
+        {priorities.length ? priorities.map(item => (
+          <button key={item.id} className="home-priority" onClick={() => go(item.route)}>
+            <span className={'priority-dot ' + item.tone}></span>
+            <span className="home-priority-main"><b>{item.title}</b><small>{item.business}</small></span>
+            <span className="priority-pill">{item.label}</span>
           </button>
-        )) : <div className="empty">Nothing urgent across your businesses.</div>}
+        )) : <div className="empty">Nothing urgent across your workspaces.</div>}
+      </div>
+
+      <div className="home-section-head recent-head"><h2>Recent activity</h2><button onClick={() => go('/inbox')}>Latest first</button></div>
+      <div className="home-listcard">
+        {recentActivity.length ? recentActivity.map((item, i) => (
+          <button key={item.id} className="home-priority activity-row" onClick={() => item.ref_table === 'prospects' ? go('/sales-machine') : go('/inbox')}>
+            <span className={'activity-dot ' + (i === 0 ? 'lime' : i === 1 ? 'lavender' : 'cyan')}></span>
+            <span className="home-priority-main"><b>{item.title}</b><small>{item.body || 'Yoge Command Centre'}</small></span>
+            <span className="priority-pill">{activityAge(item.created_at)}</span>
+          </button>
+        )) : <div className="empty">No recent activity yet.</div>}
       </div>
 
       <div className="kstats"><div><b>{overdue}</b><span>Overdue</span></div><div><b>{fuDue + wlDue + ycLeadDue + reminderCount}</b><span>Follow-ups & reminders</span></div><div><b>{Math.round(unpaid).toLocaleString()}</b><span>Unpaid</span></div></div>
+
+      <nav className="home-bottom-nav" aria-label="Home navigation">
+        <button className="on" onClick={() => go('/home')}><span className="home-nav-icon">⌂</span><b>Home</b></button>
+        <button onClick={() => go('/tasks')} aria-label="Tasks"><Icon name="tasks" size={20} /></button>
+        <button onClick={() => go('/inbox')} aria-label="Inbox"><Icon name="mail" size={20} /></button>
+        <button onClick={() => go('/more')} aria-label="More"><Icon name="more" size={20} /></button>
+      </nav>
     </div></div>
   )
 }
