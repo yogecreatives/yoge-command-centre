@@ -53,17 +53,23 @@ export function Home() {
     const owed = bp.filter(p => p.status !== 'dropped').reduce((a, p) => a + Math.max(0, Number(p.balance_amount) || 0), 0)
     if (b.slug === 'yogecreatives') {
       const leads = prospects.filter(p => p.business_id === b.id && p.stage === 'new').length
-      return { id: b.slug, name: b.name, hi: true, chip: due + ycLeadDue ? `${due + ycLeadDue} due` : 'All clear', info: `${active} active projects · ${leads} new leads · ${Math.round(owed).toLocaleString()} unpaid` }
+      const overdueTasks = bt.filter(t => t.due_date && t.due_date < today).length
+      const dueTasks = bt.filter(t => t.due_date && t.due_date === today).length
+      const alert = overdueTasks ? `${overdueTasks} overdue task${overdueTasks === 1 ? '' : 's'}` : dueTasks ? `${dueTasks} task${dueTasks === 1 ? '' : 's'} due today` : undefined
+      return { id: b.slug, name: b.name, hi: true, chip: due + ycLeadDue ? `${due + ycLeadDue} due` : 'All clear', alert, info: `${active} active projects · ${leads} new leads · ${Math.round(owed).toLocaleString()} unpaid` }
     }
     if (b.slug === 'white-label') {
       const n = prospects.filter(p => p.business_id === b.id).length
-      return { id: b.slug, name: b.name, chip: wlDue ? `${wlDue} to send` : 'Up to date', info: `${wlDue} follow-ups due · ${n} agencies` }
+      const alert = wlDue ? `${wlDue} follow-up${wlDue === 1 ? '' : 's'} due` : undefined
+      return { id: b.slug, name: b.name, chip: wlDue ? `${wlDue} to send` : 'Up to date', alert, info: `${wlDue} follow-ups due · ${n} agencies` }
     }
-    return { id: b.slug, name: b.name, chip: `${bt.length} pending`, info: `${fu} follow-ups due · ${active} projects in progress`,
-      mini: [[String(bt.length), 'Pending'], [String(bt.filter(t => t.due_date && t.due_date < today).length), 'Overdue'], [String(fu), 'Follow-ups']] }
-  })
+    const overdueTasks = bt.filter(t => t.due_date && t.due_date < today).length
+    const dueTasks = bt.filter(t => t.due_date && t.due_date === today).length
+    const alert = overdueTasks ? `${overdueTasks} overdue task${overdueTasks === 1 ? '' : 's'}` : dueTasks ? `${dueTasks} task${dueTasks === 1 ? '' : 's'} due today` : undefined
+    return { id: b.slug, name: b.name, chip: `${bt.length} pending`, alert, info: `${fu} follow-ups due · ${active} projects in progress`,
+      mini: [[String(bt.length), 'Pending'], [String(overdueTasks), 'Overdue'], [String(fu), 'Follow-ups']] }
 
-  cards.push({ id: 'sales-machine', name: 'Sales Machine', chip: salesDue ? `${salesDue} due` : 'Ready', info: `${salesReview} to review · ${salesApproved} approved · one sales engine across all businesses`, hi: true })
+  cards.push({ id: 'sales-machine', name: 'Sales Machine', chip: salesDue ? `${salesDue} due` : 'Ready', alert: salesDue ? `${salesDue} sales follow-up${salesDue === 1 ? '' : 's'} due` : undefined, info: `${salesReview} to review · ${salesApproved} approved · one sales engine across all businesses`, hi: true })
 
   const attention = useMemo<Attention[]>(() => {
     const out: Attention[] = []
