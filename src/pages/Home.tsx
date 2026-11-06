@@ -68,6 +68,7 @@ export function Home() {
     const alert = overdueTasks ? `${overdueTasks} overdue task${overdueTasks === 1 ? '' : 's'}` : dueTasks ? `${dueTasks} task${dueTasks === 1 ? '' : 's'} due today` : undefined
     return { id: b.slug, name: b.name, chip: `${bt.length} pending`, alert, info: `${fu} follow-ups due · ${active} projects in progress`,
       mini: [[String(bt.length), 'Pending'], [String(overdueTasks), 'Overdue'], [String(fu), 'Follow-ups']] }
+  })
 
   cards.push({ id: 'sales-machine', name: 'Sales Machine', chip: salesDue ? `${salesDue} due` : 'Ready', alert: salesDue ? `${salesDue} sales follow-up${salesDue === 1 ? '' : 's'} due` : undefined, info: `${salesReview} to review · ${salesApproved} approved · one sales engine across all businesses`, hi: true })
 
