@@ -67,3 +67,15 @@ body.dots{background-image:none}
 .w .mini div{border-left-color:rgba(23,23,15,.15)}
 .w .mini span{color:rgba(23,23,15,.6)}
 @keyframes wrise{from{opacity:0;transform:translateY(24px)}}
+
+
+/* ---- home concept refinement ---- */
+.home-greeting{font-size:38px;line-height:1.02;font-weight:500;letter-spacing:-.05em;margin:0 0 24px}
+.home-greeting span{color:var(--muted)}
+.home-attention{display:flex;flex-direction:column;gap:8px;margin-bottom:30px}
+.home-attn-chip{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:0 14px;border:1px solid var(--line);border-radius:18px;background:var(--group);color:var(--text);text-align:left;cursor:pointer}
+.home-attn-chip b{min-width:24px;height:24px;border-radius:12px;background:var(--red);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center}
+.home-attn-chip span{font-size:13px;font-weight:500}
+.home-attn-chip small{margin-left:auto;color:var(--muted);font-size:12px}
+.home-attn-chip svg{color:var(--muted);flex:none}
+.home-attn-chip:active{transform:scale(.985)}
