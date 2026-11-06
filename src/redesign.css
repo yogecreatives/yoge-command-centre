@@ -41,24 +41,21 @@ body.dots{background-image:none}
 
 /* ---- workspace stack: file-folder cards ---- */
 .wall{margin-top:36px}
-.w,.w.hi{overflow:visible;border:0;color:#fff;padding:12px;background:var(--c,var(--f-yc));box-shadow:0 -8px 20px rgba(0,0,0,.08);animation:wrise .55s cubic-bezier(.3,.8,.3,1) both;transition:transform .2s cubic-bezier(.3,.8,.3,1)}
+.w,.w.hi{overflow:visible;border:0;color:var(--f-ink);padding:20px;
+  background:var(--c,var(--f-yc));box-shadow:0 -8px 20px rgba(0,0,0,.08);
+  animation:wrise .55s cubic-bezier(.3,.8,.3,1) both;transition:transform .2s cubic-bezier(.3,.8,.3,1)}
 [data-theme="dark"] .w,[data-theme="dark"] .w.hi{border:0;box-shadow:0 -8px 20px rgba(0,0,0,.4)}
 .w:active{transform:translateY(-5px)}
 .w:nth-child(1){--c:var(--f-yc);animation-delay:0s}
 .w:nth-child(2){--c:var(--f-yw);animation-delay:.08s}
 .w:nth-child(3){--c:var(--f-wl);animation-delay:.16s}
 .w:nth-child(4){--c:var(--f-sm);animation-delay:.24s}
-.w-card{position:relative;min-height:112px;padding:18px 18px 16px;border-radius:24px;background:linear-gradient(145deg,#171817,#0b0c0b);color:#fff;box-shadow:0 10px 24px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.08);overflow:hidden}
-.w-card::after{content:"";position:absolute;right:-28px;bottom:-34px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.035);pointer-events:none}
-.w .nm{font-size:22px;font-weight:500;letter-spacing:-.04em;line-height:1.1;padding-right:42px;position:relative}
-.w .in,.w.hi .in{color:rgba(255,255,255,.62);opacity:1;margin-top:10px;font-size:12px;line-height:1.45}
-.w-alert{display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.1);font-size:11px;font-weight:600;color:#fff}
-.w-alert span{width:7px;height:7px;border-radius:50%;background:#ff7868;display:block;box-shadow:0 0 0 3px rgba(255,120,104,.12)}
-
-.w .nm i.w-arrow{position:absolute;right:0;top:-4px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);display:grid;place-items:center;font-style:normal;color:#fff}
-.w .mini{position:relative;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12)}
-.w .mini div{border-left-color:rgba(255,255,255,.16)}
-.w .mini span{color:rgba(255,255,255,.55)}
+.w .nm{font-size:23px;font-weight:500;letter-spacing:-.04em;line-height:1}
+.w .in,.w.hi .in{color:rgba(23,23,15,.62);opacity:1;margin-top:8px;font-size:12px}
+.w-alert{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:6px 10px;border-radius:999px;background:rgba(23,23,15,.08);font-size:11px;font-weight:600;color:var(--f-ink)}
+.w-alert span{width:7px;height:7px;border-radius:50%;background:#e64b3c;display:block}
+.w .mini div{border-left-color:rgba(23,23,15,.15)}
+.w .mini span{color:rgba(23,23,15,.6)}
 @keyframes wrise{from{opacity:0;transform:translateY(24px)}}
 
 
@@ -120,9 +117,10 @@ body.dots{background-image:none}
 .pillnav button:not(.on){color:var(--muted)}
 .pillnav button.on .pillnav-icon{width:22px}
 @media(max-width:600px){
-  .pillnav{left:8px!important;right:8px!important}
-  .pillnav button{min-width:46px}
-  .pillnav button.on{min-width:88px}
+  .pillnav{width:100%;box-sizing:border-box;gap:2px;padding:6px}
+  .pillnav button{flex:1;min-width:0;height:48px;padding:0 8px}
+  .pillnav button.on{flex:1.65;min-width:0;padding-left:12px}
+  .pillnav button:not(.on){padding-left:6px;padding-right:6px}
 }
 /* top command pill */
 .chip-sw{padding-right:10px}
