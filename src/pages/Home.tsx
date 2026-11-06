@@ -181,12 +181,13 @@ export function Home() {
         )) : <div className="empty">No recent activity yet.</div>}
       </div>
 
-      <nav className="home-bottom-nav" aria-label="Home navigation">
+      <nav className="home-bottom-nav" aria-label="Workspace navigation">
         <button className="on" onClick={() => go('/home')}><span className="home-nav-icon">⌂</span><b>Home</b></button>
-        <button onClick={() => go('/tasks')} aria-label="Tasks"><Icon name="tasks" size={20} /></button>
-        <button onClick={() => go('/inbox')} aria-label="Inbox"><Icon name="mail" size={20} /></button>
-        <button onClick={() => go('/more')} aria-label="More"><Icon name="more" size={20} /></button>
-      </nav>
-    </div></div>
+        {visibleBusinesses(businesses).slice(0, 3).map(b => (
+          <button key={b.slug} onClick={() => go(businessRoute(b.slug))} aria-label={b.name}>
+            <span className="workspace-nav-dot" data-tone={b.slug}></span>
+          </button>
+        ))}
+      </nav>    </div></div>
   )
 }
