@@ -124,8 +124,13 @@ export function Home() {
       )}
 
       <div className="eyebrow">{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</div>
-      <div className="hero-n">{need}</div>
-      <p className="hero-s">{need === 1 ? 'thing needs you today' : 'things need you today'}</p>
+      <h1 className="home-greeting">Good morning,<br /><span>{profile?.full_name?.split(' ')[0] || 'Munis'}.</span></h1>
+
+      <div className="home-attention">
+        <button className="home-attn-chip" onClick={() => go('/tasks')}><b>{overdue + dueToday}</b><span>Tasks need attention</span><small>Across workspaces</small><Icon name="arrow-right" size={16} /></button>
+        <button className="home-attn-chip" onClick={() => go('/sales-machine')}><b>{salesDue}</b><span>Sales follow-ups</span><small>Sales Machine</small><Icon name="arrow-right" size={16} /></button>
+        <button className="home-attn-chip" onClick={() => go('/inbox')}><b>{reminderCount}</b><span>Unread reminders</span><small>Inbox</small><Icon name="arrow-right" size={16} /></button>
+      </div>
 
       {cards.length ? <WalletStack cards={cards} onOpen={slug => slug === 'sales-machine' ? go('/sales-machine') : go(businessRoute(slug))} /> : <div className="deck-empty">Setting up your businesses…</div>}
 
