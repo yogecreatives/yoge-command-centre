@@ -36,7 +36,7 @@ export interface AppNotification {
 export interface Settings {
   id: string; user_id: string; timezone: string; timezone_confirmed: boolean
   remind_days_before: number; remind_tasks: boolean; remind_followups: boolean; remind_projects: boolean; remind_overdue: boolean
-  sender_name: string; project_task_template: StarterTask[]
+  project_task_template: StarterTask[]
 }
 export interface Referrer extends Base { name: string; type: ReferrerType; email: string | null; phone: string | null; notes: string | null }
 export interface Income extends Base { business_id: string | null; source: string; amount: number; entry_date: string; status: 'received' | 'expected'; notes: string | null }
