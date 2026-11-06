@@ -2,7 +2,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import { supabase } from './supabase'
 import { useAuth } from './auth'
 import { useToast } from '../ui/toast'
-import { Activity, AppNotification, Business, Expense, FollowUp, Idea, Income, Project, Referrer, Settings, Status, Task, Profile, WorkspaceMembership } from './types'
+import { AppNotification, Business, Expense, FollowUp, Idea, Income, Project, Referrer, Settings, Status, Task, Profile, WorkspaceMembership } from './types'
 
 type Tables = {
   tasks: Task[]; follow_ups: FollowUp[]; projects: Project[]; ideas: Idea[]; notifications: AppNotification[]
