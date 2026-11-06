@@ -155,6 +155,7 @@ export function Home() {
         <button className="home-attn-chip" onClick={() => go('/inbox')}><b>{reminderCount}</b><span>Unread reminders</span><small>Inbox</small><Icon name="arrow-right" size={16} /></button>
       </div>
 
+      <div className="workspace-section-head"><h2>Your workspaces</h2><span>Tap to open</span></div>
       {cards.length ? <WalletStack cards={cards} onOpen={slug => slug === 'sales-machine' ? go('/sales-machine') : go(businessRoute(slug))} /> : <div className="deck-empty">Setting up your businesses…</div>}
 
 
