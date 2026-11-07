@@ -26,7 +26,7 @@ interface DataCtx {
   bizById: (id: string | null | undefined) => Business | undefined
   bizBySlug: (slug: string) => Business | undefined
   tasks: Task[]; followUps: FollowUp[]; projects: Project[]; ideas: Idea[]; notifications: AppNotification[]
-  referrers: Referrer[]; prospects: Prospect[]; activities: Activity[]; income: Income[]; expenses: Expense[]
+  referrers: Referrer[]; prospects: Prospect[]; activities: Activity[]; notes: Note[]; income: Income[]; expenses: Expense[]
   settings: Settings | null
   create: (table: TableKey, values: Record<string, unknown>) => Promise<any | null>
   update: (table: TableKey, id: string, values: Record<string, unknown>) => Promise<any | null>
