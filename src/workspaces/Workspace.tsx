@@ -5,8 +5,8 @@ import { Icon } from '../ui/Icon'
 import { useData } from '../lib/data'
 import { go } from '../lib/route'
 
-export const YC_TABS: [string, string][] = [['overview', 'Overview'], ['tasks', 'Tasks'], ['projects', 'Projects'], ['more', 'More']]
-export const WL_TABS: [string, string][] = [['overview', 'Overview'], ['tasks', 'Tasks']]
+export const YC_TABS: [string, string][] = [['overview', 'Overview'], ['tasks', 'Tasks'], ['pipeline', 'Pipeline'], ['projects', 'Projects'], ['more', 'More']]
+export const WL_TABS: [string, string][] = [['overview', 'Overview'], ['tasks', 'Tasks'], ['pipeline', 'Pipeline']]
 
 export function WorkspaceShell({ slug, tab, children, tabs = YC_TABS }: { slug: string; tab: string; children: ReactNode; tabs?: [string, string][] }) {
   const { notifications, tasks, followUps, projects, income, expenses, bizBySlug } = useData()
