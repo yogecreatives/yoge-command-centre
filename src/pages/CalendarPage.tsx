@@ -5,7 +5,7 @@ export function CalendarPage() {
   const open = useEditor()
   return (
     <>
-      <header className="large"><h1>Calendar</h1><div className="toolbar"><button className="iconbtn" onClick={() => open('new')} aria-label="Add"><Icon name="plus" /></button></div></header>
+      <header className="large"><div><p className="date">Universal</p><h1>Calendar</h1></div><div className="toolbar"><button className="iconbtn" onClick={() => open('new')} aria-label="Add"><Icon name="plus" /></button></div></header>
       <CalendarView />
     </>
   )
