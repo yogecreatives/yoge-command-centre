@@ -83,7 +83,7 @@ function Shell() {
         <div className={`sync ${busy ? 'on' : ''}`} aria-live="polite">{busy ? 'Saving…' : ''}</div>
       </main>
       <PillNav
-        tabs={[['home', 'Home'], ['tasks', 'Tasks'], ['projects', 'Projects'], ['more', 'More']]}
+        tabs={[['home', 'Home'], ['calendar', 'Calendar'], ['notes', 'Notes'], ['more', 'More']]}
         active={activeNav}
         onGo={id => go(id === 'home' ? '/home' : '/' + id)}
       />
