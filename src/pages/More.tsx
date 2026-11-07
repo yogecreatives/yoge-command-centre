@@ -15,6 +15,8 @@ export function More() {
         {businesses.map(b => <button key={b.id} className="row" onClick={() => go('/b/' + b.slug)}><span className="tile">{b.symbol}</span><div className="row-main"><div className="row-title">{b.name}</div></div><Icon name="chevron" size={16} /></button>)}
       </div></section>
       <section className="section"><div className="group">
+        {link('/calendar', 'Calendar', 'calendar')}
+        {link('/notes', 'Notes', 'notes')}
         {link('/projects', 'Projects', 'folder')}
         {link('/partners', 'Partners', 'users')}
         {link('/money', 'Money', 'money')}
