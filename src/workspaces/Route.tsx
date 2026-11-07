@@ -11,6 +11,8 @@ import { YcMore } from './yc/More'
 import { YcFinance } from './yc/Finance'
 import { YcReports } from './yc/Reports'
 import { YcContacts } from './yc/Contacts'
+import { YcPipeline } from './yc/Pipeline'
+import { Pipeline } from '../pages/Pipeline'
 import { Settings } from '../pages/Settings'
 import { Inbox } from '../pages/Inbox'
 
@@ -47,9 +49,9 @@ export function WorkspaceRoute({ parts }: { parts: string[] }) {
   if (slug === 'white-label') {
     if (!biz) return <div className="shell2"><div className="deck-empty">White Label workspace not found. Reload the app.</div></div>
     if (tab === 'notifications') return <WorkspaceShell slug={slug} tab="overview" tabs={WL_TABS}><Inbox scope={slug} /></WorkspaceShell>
-    const wlTab = tab === 'tasks' ? 'tasks' : 'overview'
+    const wlTab = tab === 'tasks' ? 'tasks' : tab === 'pipeline' ? 'pipeline' : 'overview'
     return <WorkspaceShell slug={slug} tab={wlTab} tabs={WL_TABS}>
-      {wlTab === 'tasks' ? <YcTasks bizId={biz.id} /> : <YcOverview bizId={biz.id} businessName={biz.name} />}
+      {wlTab === 'tasks' ? <YcTasks bizId={biz.id} /> : wlTab === 'pipeline' ? <Pipeline /> : <YcOverview bizId={biz.id} businessName={biz.name} />}
     </WorkspaceShell>
   }
 
@@ -59,8 +61,9 @@ export function WorkspaceRoute({ parts }: { parts: string[] }) {
   let page
   if (tab === 'notifications') page = <Inbox scope={slug} />
   else if (tab === 'tasks') page = <YcTasks bizId={biz.id} />
+  else if (tab === 'pipeline') page = <YcPipeline bizId={biz.id} />
   else if (tab === 'projects') page = <YcProjects bizId={biz.id} />
   else if (tab === 'more') page = sub === 'finance' ? <YcFinance bizId={biz.id} slug={slug} /> : sub === 'reports' ? <YcReports bizId={biz.id} slug={slug} /> : sub === 'contacts' ? <YcContacts bizId={biz.id} slug={slug} /> : sub === 'settings' ? <Settings scope={slug} /> : <YcMore slug={slug} name={biz.name} />
   else page = <YcOverview bizId={biz.id} businessName={biz.name} />
-  return <WorkspaceShell slug={slug} tab={['overview', 'tasks', 'projects', 'more'].includes(tab) ? tab : 'overview'}>{page}</WorkspaceShell>
+  return <WorkspaceShell slug={slug} tab={['overview', 'tasks', 'pipeline', 'projects', 'more'].includes(tab) ? tab : 'overview'}>{page}</WorkspaceShell>
 }
