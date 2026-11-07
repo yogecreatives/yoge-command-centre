@@ -102,8 +102,10 @@ export function Home() {
         </button>) : <div className="empty">No recent activity yet.</div>}
       </div>
 
-      <nav className="home-bottom-nav" aria-label="Workspace navigation">
+      <nav className="home-bottom-nav" aria-label="Main navigation">
         <button className="on" onClick={() => go('/home')}><span className="home-nav-icon">⌂</span><b>Home</b></button>
+        <button onClick={() => go('/calendar')} aria-label="Calendar"><Icon name="calendar" size={21} /></button>
+        <button onClick={() => go('/notes')} aria-label="Notes"><Icon name="notes" size={21} /></button>
         {visibleBusinesses(businesses).slice(0, 3).map(b => {
           const icon = b.slug === "yogecreatives" ? "briefcase" : b.slug === "yogeworks" ? "sparkles" : "layers"
           return <button key={b.slug} onClick={() => go(businessRoute(b.slug))} aria-label={b.name}><Icon name={icon} size={21} /></button>
