@@ -2,15 +2,15 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import { supabase } from './supabase'
 import { useAuth } from './auth'
 import { useToast } from '../ui/toast'
-import { Activity, AppNotification, Business, Expense, Prospect, FollowUp, Idea, Income, Project, Referrer, Settings, Status, Task, Profile, WorkspaceMembership } from './types'
+import { Activity, AppNotification, Business, Expense, Note, Prospect, FollowUp, Idea, Income, Project, Referrer, Settings, Status, Task, Profile, WorkspaceMembership } from './types'
 
 type Tables = {
   tasks: Task[]; follow_ups: FollowUp[]; projects: Project[]; ideas: Idea[]; notifications: AppNotification[]
-  referrers: Referrer[]; prospects: Prospect[]; prospect_activities: Activity[]; income_entries: Income[]; expenses: Expense[]
+  referrers: Referrer[]; prospects: Prospect[]; prospect_activities: Activity[]; notes: Note[]; income_entries: Income[]; expenses: Expense[]
 }
 export type TableKey = keyof Tables
-const TABLES: TableKey[] = ['tasks', 'follow_ups', 'projects', 'ideas', 'notifications', 'referrers', 'prospects', 'prospect_activities', 'income_entries', 'expenses']
-const empty: Tables = { tasks: [], follow_ups: [], projects: [], ideas: [], notifications: [], referrers: [], prospects: [], prospect_activities: [], income_entries: [], expenses: [] }
+const TABLES: TableKey[] = ['tasks', 'follow_ups', 'projects', 'ideas', 'notifications', 'referrers', 'prospects', 'prospect_activities', 'notes', 'income_entries', 'expenses']
+const empty: Tables = { tasks: [], follow_ups: [], projects: [], ideas: [], notifications: [], referrers: [], prospects: [], prospect_activities: [], notes: [], income_entries: [], expenses: [] }
 
 interface DataCtx {
   state: 'loading' | 'ready' | 'error'
@@ -66,7 +66,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const loaded = useRef(false)
 
   const load = useCallback(async () => {
-    const [b, me, profs, memberships, t, f, p, i, n, s, rf, pr, pa, inc, ex] = await Promise.all([
+    const [b, me, profs, memberships, t, f, p, i, n, s, rf, pr, pa, no, inc, ex] = await Promise.all([
       supabase.from('businesses').select('*').order('sort_order'),
       supabase.from('profiles').select('*').eq('user_id', uid).maybeSingle(),
       supabase.from('profiles').select('*').order('full_name'),
@@ -80,10 +80,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       supabase.from('referrers').select('*'),
       supabase.from('prospects').select('*'),
       supabase.from('prospect_activities').select('*'),
+      supabase.from('notes').select('*').order('updated_at', { ascending: false }),
       supabase.from('income_entries').select('*'),
       supabase.from('expenses').select('*'),
     ])
-    const failed = [b, me, profs, memberships, t, f, p, i, n, s, rf, pr, pa, inc, ex].find(r => r.error)
+    const failed = [b, me, profs, memberships, t, f, p, i, n, s, rf, pr, pa, no, inc, ex].find(r => r.error)
     if (failed?.error) throw new Error(failed.error.message)
 
     const myProfile = (me.data ?? null) as Profile | null
@@ -100,7 +101,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setMemberships(myMemberships)
     setDb({
       tasks: t.data as Task[], follow_ups: f.data as FollowUp[], projects: p.data as Project[], ideas: i.data as Idea[],
-      notifications: n.data as AppNotification[], referrers: rf.data as Referrer[], prospects: pr.data as Prospect[], prospect_activities: pa.data as Activity[], income_entries: inc.data as Income[], expenses: ex.data as Expense[]
+      notifications: n.data as AppNotification[], referrers: rf.data as Referrer[], prospects: pr.data as Prospect[], prospect_activities: pa.data as Activity[], notes: no.data as Note[], income_entries: inc.data as Income[], expenses: ex.data as Expense[]
     })
     setSettings((s.data ?? null) as Settings | null)
   }, [uid])
@@ -240,7 +241,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     state, error, online, busy, email: session!.user.email ?? '', businesses, profile, teamProfiles, memberships, isAdmin: profile?.role === 'owner',
     bizById: id => (id ? bizMap.get(id) : undefined), bizBySlug: slug => businesses.find(b => b.slug === slug),
     tasks: db.tasks, followUps: db.follow_ups, projects: db.projects, ideas: db.ideas, notifications: db.notifications,
-    referrers: db.referrers, prospects: db.prospects, activities: db.prospect_activities, income: db.income_entries, expenses: db.expenses, settings, create, createMany, update, remove,
+    referrers: db.referrers, prospects: db.prospects, activities: db.prospect_activities, notes: db.notes, income: db.income_entries, expenses: db.expenses, settings, create, createMany, update, remove,
     setTaskStatus, toggleTask, completeFollowUp, reopenFollowUp, rescheduleFollowUp, updateSettings, updateProfile, setMembership,
     createBusiness, createPartner, reload, signOut: async () => { await supabase.auth.signOut() },
   }
