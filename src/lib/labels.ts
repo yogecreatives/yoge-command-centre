@@ -8,6 +8,11 @@ export const TASK_TYPE: Record<TaskType, string> = {
 export const PROJECT_STATUS: Record<ProjectStatus, string> = { planning: 'Planning', in_progress: 'In progress', on_hold: 'On hold', completed: 'Completed', dropped: 'Dropped' }
 export const INVOICE: Record<InvoiceStatus, string> = { not_sent: 'Not sent', sent: 'Sent, unpaid', paid: 'Paid' }
 export const REFERRER_TYPE: Record<ReferrerType, string> = { agency: 'Agency', individual: 'Individual', direct: 'Direct', marketplace: 'Marketplace' }
+export const STAGE: Record<Stage, string> = {
+  prospect: 'Prospect', email_1: 'Email 1', follow_up_1: 'Follow-up 1', follow_up_2: 'Follow-up 2', replied: 'Replied', call_booked: 'Call booked',
+  test_project: 'Test project', partner: 'Partner', not_now: 'Not now', not_interested: 'Not interested', invalid: 'Invalid email',
+  new: 'New', contacted: 'Contacted', interested: 'Interested', proposal_sent: 'Proposal sent', negotiation: 'Negotiation', won: 'Won', lost: 'Lost',
+}
 export const IDEA_STATUS: Record<IdeaStatus, string> = { new: 'New', exploring: 'Exploring', converted: 'Converted', archived: 'Archived' }
 
 export const CATEGORIES: Record<string, string[]> = {
