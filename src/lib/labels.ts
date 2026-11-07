@@ -1,4 +1,4 @@
-import { IdeaStatus, InvoiceStatus, Priority, ProjectStatus, ReferrerType, Status, TaskType } from './types'
+import { IdeaStatus, InvoiceStatus, Priority, ProjectStatus, ReferrerType, Stage, Status, TaskType } from './types'
 export const STATUS: Record<Status, string> = { pending: 'Pending', in_progress: 'In progress', completed: 'Completed' }
 export const PRIORITY: Record<Priority, string> = { normal: 'Normal', high: 'High', urgent: 'Urgent' }
 export const TASK_TYPE: Record<TaskType, string> = {
