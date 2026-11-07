@@ -56,7 +56,7 @@ export function WalletStack({ cards, onOpen }: { cards: WalletCard[]; onOpen: (i
 }
 
 export function PillNav({ tabs, active, onGo }: { tabs: [string, string][]; active: string; onGo: (id: string) => void }) {
-  const icons: Record<string, string> = { home: 'today', overview: 'today', tasks: 'tasks', projects: 'folder', more: 'more', calendar: 'calendar', inbox: 'mail', followups: 'follow' }
+  const icons: Record<string, string> = { home: 'today', overview: 'today', tasks: 'tasks', projects: 'folder', more: 'more', calendar: 'calendar', notes: 'notes', pipeline: 'pipeline', inbox: 'mail', followups: 'follow' }
   return (
     <nav className="pillnav" aria-label="Main navigation">
       {tabs.map(([id, label]) => <button key={id} className={id === active ? 'on' : ''} aria-current={id === active ? 'page' : undefined} onClick={() => onGo(id)}>
