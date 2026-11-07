@@ -38,16 +38,17 @@ export function StackDeck({ items, doneLabel = 'Done', laterLabel = 'Later', onD
   )
 }
 
-export interface WalletCard { id: string; name: string; chip: string; info: string; hi?: boolean; mini?: [string, string][]; alert?: string }
+export interface WalletCard { id: string; name: string; chip: string; info: string; hi?: boolean; alert?: string }
 export function WalletStack({ cards, onOpen }: { cards: WalletCard[]; onOpen: (id: string) => void }) {
+  const cardHeight = 136
+  const gap = 12
   return (
-    <div className="wall" style={{ height: 96 * (cards.length - 1) + 124 }}>
+    <div className="wall" style={{ height: cards.length ? cards.length * cardHeight + (cards.length - 1) * gap : 0 }}>
       {cards.map((c, i) => (
-        <button key={c.id} className={`w ${c.hi ? 'hi' : ''}`} style={{ top: i * 96, zIndex: i + 1 }} onClick={() => onOpen(c.id)}>
+        <button key={c.id} className={`w ${c.hi ? 'hi' : ''}`} style={{ top: i * (cardHeight + gap), zIndex: 1 }} onClick={() => onOpen(c.id)}>
           <div className="nm">{c.name}<i className="w-arrow" aria-hidden="true"><Icon name="chevron" size={17} /></i></div>
           {c.alert && <div className="w-alert"><span></span>{c.alert}</div>}
           <div className="in">{c.info}</div>
-          {i === cards.length - 1 && c.mini && <div className="mini">{c.mini.map(([n, l]) => <div key={l}><b>{n}</b><span>{l}</span></div>)}</div>}
         </button>
       ))}
     </div>
