@@ -14,6 +14,7 @@ import { Today } from './pages/Today'
 import { Tasks } from './pages/Tasks'
 import { FollowUps } from './pages/FollowUps'
 import { CalendarPage } from './pages/CalendarPage'
+import { NotesPage } from './pages/NotesPage'
 import { Business } from './pages/Business'
 import { Ideas } from './pages/Ideas'
 import { Inbox } from './pages/Inbox'
@@ -63,6 +64,7 @@ function Shell() {
   else if (path === '/partners') page = <Partners />
   else if (path === '/money') page = <Money />
   else if (path === '/calendar') page = <CalendarPage />
+  else if (path === '/notes') page = <NotesPage />
   else if (path === '/ideas') page = <Ideas />
   else if (path === '/more') page = <More />
   else if (path === '/settings') page = <Settings />
