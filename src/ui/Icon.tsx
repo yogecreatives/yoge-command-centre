@@ -4,6 +4,8 @@ const P: Record<string, string> = {
   follow: 'M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z',
   calendar: 'M5 6h14a1 1 0 011 1v12a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1zM4 10h16M8 3v4M16 3v4',
   more: 'M5 12h.01M12 12h.01M19 12h.01',
+  notes: 'M6 4h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2zM8 9h8M8 13h8M8 17h5',
+  pipeline: 'M4 5h16l-6 7v5l-4 2v-7L4 5z',
   plus: 'M12 5v14M5 12h14',
   back: 'M15 5l-7 7 7 7',
   chevron: 'M9 5l7 7-7 7',
