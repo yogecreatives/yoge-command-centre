@@ -1,4 +1,5 @@
 import { ReactNode, useRef, useState } from 'react'
+import { Icon } from './Icon'
 
 export interface DeckItem { id: string; label: string; title: string; sub?: string; badge?: string; tone?: 'red' | '' }
 
@@ -37,15 +38,17 @@ export function StackDeck({ items, doneLabel = 'Done', laterLabel = 'Later', onD
   )
 }
 
-export interface WalletCard { id: string; name: string; chip: string; info: string; hi?: boolean; mini?: [string, string][] }
+export interface WalletCard { id: string; name: string; chip: string; info: string; hi?: boolean; alert?: string }
 export function WalletStack({ cards, onOpen }: { cards: WalletCard[]; onOpen: (id: string) => void }) {
+  const cardHeight = 136
+  const gap = 12
   return (
-    <div className="wall" style={{ height: 70 * (cards.length - 1) + 124 }}>
+    <div className="wall" style={{ height: cards.length ? cards.length * cardHeight + (cards.length - 1) * gap : 0 }}>
       {cards.map((c, i) => (
-        <button key={c.id} className={`w ${c.hi ? 'hi' : ''}`} style={{ top: i * 70, zIndex: i + 1 }} onClick={() => onOpen(c.id)}>
-          <div className="nm">{c.name}<span>{c.chip}</span></div>
+        <button key={c.id} className={`w ${c.hi ? 'hi' : ''}`} style={{ top: i * (cardHeight + gap), zIndex: 1 }} onClick={() => onOpen(c.id)}>
+          <div className="nm">{c.name}<i className="w-arrow" aria-hidden="true"><Icon name="chevron" size={17} /></i></div>
+          {c.alert && <div className="w-alert"><span></span>{c.alert}</div>}
           <div className="in">{c.info}</div>
-          {i === cards.length - 1 && c.mini && <div className="mini">{c.mini.map(([n, l]) => <div key={l}><b>{n}</b><span>{l}</span></div>)}</div>}
         </button>
       ))}
     </div>
@@ -53,9 +56,13 @@ export function WalletStack({ cards, onOpen }: { cards: WalletCard[]; onOpen: (i
 }
 
 export function PillNav({ tabs, active, onGo }: { tabs: [string, string][]; active: string; onGo: (id: string) => void }) {
+  const icons: Record<string, string> = { home: 'today', overview: 'today', tasks: 'tasks', projects: 'folder', more: 'more', calendar: 'calendar', notes: 'notes', pipeline: 'pipeline', inbox: 'mail', followups: 'follow' }
   return (
     <nav className="pillnav" aria-label="Main navigation">
-      {tabs.map(([id, label]) => <button key={id} className={id === active ? 'on' : ''} aria-current={id === active ? 'page' : undefined} onClick={() => onGo(id)}>{label}</button>)}
+      {tabs.map(([id, label]) => <button key={id} className={id === active ? 'on' : ''} aria-current={id === active ? 'page' : undefined} onClick={() => onGo(id)}>
+        <span className="pillnav-icon"><Icon name={icons[id] || 'folder'} size={19} /></span>
+        <span className="pillnav-label">{label}</span>
+      </button>)}
     </nav>
   )
 }

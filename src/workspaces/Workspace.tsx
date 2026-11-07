@@ -6,11 +6,11 @@ import { useData } from '../lib/data'
 import { go } from '../lib/route'
 
 export const YC_TABS: [string, string][] = [['overview', 'Overview'], ['tasks', 'Tasks'], ['pipeline', 'Pipeline'], ['projects', 'Projects'], ['more', 'More']]
-export const WL_TABS: [string, string][] = [['pipeline', 'Pipeline'], ['tasks', 'Tasks']]
+export const WL_TABS: [string, string][] = [['overview', 'Overview'], ['tasks', 'Tasks'], ['pipeline', 'Pipeline']]
 
 export function WorkspaceShell({ slug, tab, children, tabs = YC_TABS }: { slug: string; tab: string; children: ReactNode; tabs?: [string, string][] }) {
-  const { notifications, tasks, followUps, projects, prospects, income, expenses, bizBySlug } = useData()
-  const rows: Record<string, any[]> = { tasks, follow_ups: followUps, projects, prospects, income_entries: income, expenses }
+  const { notifications, tasks, followUps, projects, income, expenses, bizBySlug } = useData()
+  const rows: Record<string, any[]> = { tasks, follow_ups: followUps, projects, income_entries: income, expenses }
   const bizId = bizBySlug(slug)?.id
   const unread = notifications.filter(n => {
     if (n.read_at || !n.ref_id || !n.ref_table) return false
@@ -18,7 +18,7 @@ export function WorkspaceShell({ slug, tab, children, tabs = YC_TABS }: { slug: 
   }).length
   return (
     <div className={`shell2 ws-${slug}`}><div className="page">
-      <div className="wshead"><BizSwitcher slug={slug} />
+      <div className="wshead"><BizSwitcher slug={slug} current={slug as any} />
         <button className="iconbtn badgeh" onClick={() => go(`/w/${slug}/notifications`)} aria-label="Notifications"><Icon name="bell" />{unread > 0 && <b>{unread > 9 ? '9+' : unread}</b>}</button>
       </div>
       {children}

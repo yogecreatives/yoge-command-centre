@@ -4,16 +4,13 @@ import { Icon } from '../ui/Icon'
 import { go } from '../lib/route'
 import { addDays, todayISO } from '../lib/dates'
 import { byDue, summarize } from '../lib/logic'
-import { WAITING } from '../lib/pipeline'
 
 export function Stat({ n, label, tone, onClick }: { n: number; label: string; tone?: string; onClick?: () => void }) {
   return <button className={`stat ${tone ?? ''}`} onClick={onClick}><strong>{n}</strong><span>{label}</span></button>
 }
 
 export function Today() {
-  const { tasks, followUps, projects, businesses, notifications, prospects: allProspects } = useData()
-  const wlId = businesses.find(b => b.slug === 'white-label')?.id
-  const prospects = allProspects.filter(p => p.business_id === wlId)
+  const { tasks, followUps, projects, businesses, notifications } = useData()
   const today = todayISO()
   const s = summarize(tasks, followUps, projects, today)
   const open = tasks.filter(t => t.status !== 'completed')
@@ -26,8 +23,6 @@ export function Today() {
   const upcomingP = projects.filter(p => p.status !== 'completed' && p.due_date && p.due_date >= today && p.due_date <= horizon)
   const recent = tasks.filter(t => t.status === 'completed').sort((a, b) => (b.completed_at ?? '').localeCompare(a.completed_at ?? '')).slice(0, 5)
   const unread = notifications.filter(n => !n.read_at).length
-  const pDue = prospects.filter(p => WAITING.includes(p.stage) && p.next_action_date && p.next_action_date <= today).length
-  const pNew = prospects.filter(p => p.stage === 'prospect' && p.email).length
   const owed = projects.filter(p => p.status !== 'dropped' && Number(p.balance_amount) > 0)
   const owedSum = owed.reduce((a, p) => a + Number(p.balance_amount), 0)
   const nothing = !overdueTasks.length && !overdueFU.length && !dueFU.length && !priorities.length
@@ -51,33 +46,21 @@ export function Today() {
         <Stat n={s.completed} label="Completed" onClick={() => go('/tasks?scope=done')} />
       </div>
 
-      {(prospects.length > 0 || owed.length > 0) && (
-        <section className="section"><div className="group">
-          {prospects.length > 0 && <button className="row" onClick={() => go('/pipeline')}><span className="tile sm"><Icon name="send" size={18} /></span><div className="row-main"><div className="row-title">Agency outreach</div><div className="row-sub">{pDue} follow-up{pDue === 1 ? '' : 's'} due · {pNew} new agencies ready</div></div>{pDue > 0 && <span className="chip amber">{pDue} due</span>}<Icon name="chevron" size={16} /></button>}
-          {owed.length > 0 && <button className="row" onClick={() => go('/money')}><span className="tile sm"><Icon name="money" size={18} /></span><div className="row-main"><div className="row-title">Unpaid projects</div><div className="row-sub">{owed.length} project{owed.length === 1 ? '' : 's'} with a balance</div></div><span className="chip red">{Math.round(owedSum).toLocaleString()}</span><Icon name="chevron" size={16} /></button>}
-        </div></section>)}
+      {owed.length > 0 && <section className="section"><div className="group">
+        <button className="row" onClick={() => go('/money')}><span className="tile sm"><Icon name="money" size={18} /></span><div className="row-main"><div className="row-title">Unpaid projects</div><div className="row-sub">{owed.length} project{owed.length === 1 ? '' : 's'} with a balance</div></div><span className="chip red">{Math.round(owedSum).toLocaleString()}</span><Icon name="chevron" size={16} /></button>
+      </div></section>}
 
-      <section className="section">
-        <div className="section-title"><span>Businesses</span></div>
-        <div className="group">
-          {businesses.map(b => {
-            const bt = tasks.filter(t => t.business_id === b.id), bf = followUps.filter(f => f.business_id === b.id), bp = projects.filter(p => p.business_id === b.id)
-            const x = summarize(bt, bf, bp, today)
-            return (
-              <button key={b.id} className="row biz" onClick={() => go('/b/' + b.slug)}>
-                <span className="tile">{b.symbol}</span>
-                <div className="row-main">
-                  <div className="row-title">{b.name}</div>
-                  <div className="row-sub">{x.pending} pending · {x.inProgress} in progress · {x.completed} done</div>
-                </div>
-                {x.followUpsDue > 0 && <span className="chip amber">{x.followUpsDue} follow-up{x.followUpsDue > 1 ? 's' : ''}</span>}
-                {x.overdue > 0 && <span className="chip red">{x.overdue} overdue</span>}
-                <Icon name="chevron" size={16} />
-              </button>
-            )
-          })}
-        </div>
-      </section>
+      <section className="section"><div className="section-title"><span>Businesses</span></div><div className="group">
+        {businesses.map(b => {
+          const bt = tasks.filter(t => t.business_id === b.id), bf = followUps.filter(f => f.business_id === b.id), bp = projects.filter(p => p.business_id === b.id)
+          const x = summarize(bt, bf, bp, today)
+          return <button key={b.id} className="row biz" onClick={() => go('/b/' + b.slug)}>
+            <span className="tile">{b.symbol}</span><div className="row-main"><div className="row-title">{b.name}</div><div className="row-sub">{x.pending} pending · {x.inProgress} in progress · {x.completed} done</div></div>
+            {x.followUpsDue > 0 && <span className="chip amber">{x.followUpsDue} follow-up{x.followUpsDue > 1 ? 's' : ''}</span>}
+            {x.overdue > 0 && <span className="chip red">{x.overdue} overdue</span>}<Icon name="chevron" size={16} />
+          </button>
+        })}
+      </div></section>
 
       {nothing && <Group items={[]} title="Today" empty="Nothing needs you today. Add a task with the + button." />}
       <Group title="Overdue" items={[...overdueTasks.map(t => <TaskRow key={t.id} t={t} />), ...overdueFU.map(f => <FollowUpRow key={f.id} f={f} />)]} />

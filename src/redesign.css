@@ -1,0 +1,134 @@
+/* =====================================================================
+   Yoge redesign layer — solid background, folder-tab stack, lime accent.
+   Loaded AFTER styles.css so it overrides the visual system globally.
+   ===================================================================== */
+:root{
+  --bg:#f1f1ec; --group:#ffffff; --group2:#ecece6; --line:rgba(20,21,15,.1);
+  --text:#14150f; --muted:#666a5f; --faint:#a3a69b;
+  --primary:#14150f; --primary-ink:#ffffff; --accent:#14150f;
+  --chip:rgba(20,21,15,.06); --chip-ink:#4a4d44; --chip-lime:#f0fcb0;
+  --tile:rgba(20,21,15,.06); --tile-ink:#14150f; --sel:#ffffff; --sheet:#f1f1ec;
+  --bar:#ffffff; --tab:#666a5f; --shadow:0 1px 2px rgba(20,21,15,.04);
+  --f-yc:#e4ff55; --f-yw:#cdb7f5; --f-wl:#73e7f2; --f-sm:#ffc9a8; --f-ink:#17170f;
+}
+:root[data-theme="dark"]{
+  --bg:#0f100d; --group:#1a1c17; --group2:#23261f; --line:rgba(255,255,255,.09);
+  --text:#f3f4ee; --muted:#92968a; --sel:#23261f; --sheet:#141510; --bar:#1a1c17;
+  --accent:#e4ff55; --primary:#e4ff55; --primary-ink:#1b2200; --shadow:none;
+}
+body.dots{background-image:none}
+
+/* ---- header ---- */
+.iconbtn{border:1px solid var(--line);color:var(--text)}
+.chip-sw{border:1px solid var(--line)}
+.badgeh b{border:2px solid var(--bg);box-sizing:content-box;min-width:14px;height:14px;font-size:10px;top:-5px;right:-5px}
+.eyebrow,[data-theme="dark"] .eyebrow{font-family:var(--font);font-size:11px;font-weight:500;letter-spacing:.14em}
+.hero-n,[data-theme="dark"] .hero-n{font-weight:300;letter-spacing:-.06em}
+[data-theme="dark"] .kstats b{font-weight:300}
+
+/* ---- surfaces: flat, hairline border ---- */
+.group,.listcard,.stat,.pr,.search,.seg,.input,.capture input,.kstats.four>div{border:1px solid var(--line)}
+.group,.listcard{border-radius:24px;box-shadow:none}
+.chip{font-weight:500}
+.chip.red{color:var(--red)}
+.seg button.on{background:var(--group);border:1px solid var(--line)}
+
+/* ---- nav + fab: lime accent ---- */
+.pillnav,[data-theme="dark"] .pillnav{background:var(--group);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.pillnav button,[data-theme="dark"] .pillnav button{color:var(--muted)}
+.pillnav button.on,[data-theme="dark"] .pillnav button.on{background:#e4ff55;color:#1b2200}
+.fab{background:#e4ff55;color:#1b2200;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+
+/* ---- workspace stack: file-folder cards ---- */
+.wall{margin-top:36px}
+.w,.w.hi{overflow:visible;border:0;color:var(--f-ink);padding:20px;
+  background:var(--c,var(--f-yc));box-shadow:0 -8px 20px rgba(0,0,0,.08);
+  animation:wrise .55s cubic-bezier(.3,.8,.3,1) both;transition:transform .2s cubic-bezier(.3,.8,.3,1)}
+[data-theme="dark"] .w,[data-theme="dark"] .w.hi{border:0;box-shadow:0 -8px 20px rgba(0,0,0,.4)}
+.w:active{transform:translateY(-5px)}
+.w:nth-child(1){--c:var(--f-yc);animation-delay:0s}
+.w:nth-child(2){--c:var(--f-yw);animation-delay:.08s}
+.w:nth-child(3){--c:var(--f-wl);animation-delay:.16s}
+.w:nth-child(4){--c:var(--f-sm);animation-delay:.24s}
+.w .nm{font-size:23px;font-weight:500;letter-spacing:-.04em;line-height:1}
+.w .in,.w.hi .in{color:rgba(23,23,15,.62);opacity:1;margin-top:8px;font-size:12px}
+.w-alert{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:6px 10px;border-radius:999px;background:rgba(23,23,15,.08);font-size:11px;font-weight:600;color:var(--f-ink)}
+.w-alert span{width:7px;height:7px;border-radius:50%;background:#e64b3c;display:block}
+.w .mini div{border-left-color:rgba(23,23,15,.15)}
+.w .mini span{color:rgba(23,23,15,.6)}
+@keyframes wrise{from{opacity:0;transform:translateY(24px)}}
+
+
+/* ---- home concept refinement ---- */
+.home-greeting{font-size:38px;line-height:1.02;font-weight:500;letter-spacing:-.05em;margin:0 0 24px}
+.home-greeting span{color:var(--muted)}
+.home-attention{display:flex;flex-direction:column;gap:8px;margin-bottom:30px}
+.home-attn-chip{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:0 14px;border:1px solid var(--line);border-radius:18px;background:var(--group);color:var(--text);text-align:left;cursor:pointer}
+.home-attn-chip b{min-width:24px;height:24px;border-radius:12px;background:var(--red);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center}
+.home-attn-chip span{font-size:13px;font-weight:500}
+.home-attn-chip small{margin-left:auto;color:var(--muted);font-size:12px}
+.home-attn-chip svg{color:var(--muted);flex:none}
+.home-attn-chip:active{transform:scale(.985)}
+
+/* ---- home dashboard concept details ---- */
+.home-section-head{display:flex;align-items:center;justify-content:space-between;margin:32px 4px 12px}
+.home-section-head h2{font-size:20px;line-height:1.1;font-weight:500;letter-spacing:-.03em;margin:0}
+.home-section-head button{border:0;background:none;color:var(--muted);font-size:14px;padding:4px;cursor:pointer}
+.home-listcard{background:var(--group);border:1px solid var(--line);border-radius:28px;padding:0 22px;overflow:hidden}
+.home-priority{width:100%;min-height:73px;display:flex;align-items:center;gap:16px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--text);text-align:left;padding:12px 0;cursor:pointer}
+.home-priority:last-child{border-bottom:0}
+.home-priority-main{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.home-priority-main b{font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-priority-main small{font-size:14px;color:var(--muted)}
+.priority-dot,.activity-dot{width:24px;height:24px;border-radius:50%;border:1.5px solid currentColor;flex:none}
+.priority-dot.lime{color:#d9f72d}.priority-dot.lavender{color:#cdb7f5}.priority-dot.cyan{color:#73e7f2}
+.activity-dot{width:10px;height:10px;border:0}.activity-dot.lime{background:#d9f72d}.activity-dot.lavender{background:#cdb7f5}.activity-dot.cyan{background:#73e7f2}
+.priority-pill{border:1px solid var(--line);background:var(--group2);border-radius:18px;padding:7px 12px;font-size:12px;font-weight:500;letter-spacing:.04em;white-space:nowrap}
+.recent-head{margin-top:34px}
+.activity-row{min-height:73px}
+.activity-row .home-priority-main b{font-size:17px}
+.wall{margin-top:42px}
+.w .nm{position:relative;padding-right:34px}
+.w .nm i{position:absolute;right:2px;top:-2px;width:28px;height:28px;border-radius:50%;background:rgba(23,23,15,.1);display:grid;place-items:center;font-style:normal;font-size:24px;line-height:24px;font-weight:300}
+.home-bottom-nav{position:sticky;bottom:10px;z-index:20;margin:46px -2px 8px;padding:7px;background:var(--group);border:1px solid var(--line);border-radius:38px;box-shadow:0 12px 30px rgba(0,0,0,.12);display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;align-items:center}
+.home-bottom-nav button{height:48px;border:0;background:none;color:var(--muted);border-radius:28px;display:flex;align-items:center;justify-content:center;gap:9px;font-size:15px;cursor:pointer}
+.home-bottom-nav button.on{background:#e4ff55;color:#1b2200;justify-content:flex-start;padding-left:20px}
+.home-bottom-nav button.on b{font-weight:500}
+.home-nav-icon{font-size:23px;line-height:1}
+@media(max-width:600px){
+  .home-greeting{font-size:34px}
+  .home-section-head{margin-left:3px;margin-right:3px}
+  .home-listcard{border-radius:26px;padding:0 20px}
+  .home-priority-main b{font-size:16px}
+  .home-bottom-nav{margin-left:-8px;margin-right:-8px}
+}
+
+.workspace-section-head{display:flex;align-items:center;justify-content:space-between;margin:28px 4px -4px}
+.workspace-section-head h2{font-size:20px;font-weight:500;letter-spacing:-.03em;margin:0}
+.workspace-section-head span{font-size:13px;color:var(--muted)}
+
+/* ---- shared bottom navigation: match Home concept ---- */
+.pillnav{display:flex;align-items:center;gap:4px;padding:7px;border-radius:38px}
+.pillnav button{height:48px;min-width:48px;padding:0 14px;border:0;border-radius:28px;background:transparent;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer;transition:.18s ease}
+.pillnav button.on{min-width:92px;justify-content:flex-start;padding-left:16px}
+.pillnav-icon{display:grid;place-items:center;flex:none}
+.pillnav-label{white-space:nowrap}
+.pillnav button:not(.on) .pillnav-label{display:none}
+.pillnav button:not(.on){color:var(--muted)}
+.pillnav button.on .pillnav-icon{width:22px}
+@media(max-width:600px){
+  .pillnav{width:100%;box-sizing:border-box;gap:2px;padding:6px}
+  .pillnav button{flex:1;min-width:0;height:48px;padding:0 8px}
+  .pillnav button.on{flex:1.65;min-width:0;padding-left:12px}
+  .pillnav button:not(.on){padding-left:6px;padding-right:6px}
+}
+/* top command pill */
+.chip-sw{padding-right:10px}
+.chip-sw .sw-chevron{display:grid;place-items:center;width:22px;height:22px;margin-left:3px;border-radius:50%;background:var(--tile);color:var(--muted)}
+/* cleaner workspace card arrow */
+.w .nm i.w-arrow{position:absolute;right:0;top:-1px;width:34px;height:34px;border-radius:50%;background:rgba(23,23,15,.12);display:grid;place-items:center;font-style:normal}
+
+.workspace-nav-dot{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--muted);display:block}
+.workspace-nav-dot[data-tone="yogecreatives"]{border-color:#d9f72d}
+.workspace-nav-dot[data-tone="yogeworks"]{border-color:#cdb7f5}
+.workspace-nav-dot[data-tone="white-label"]{border-color:#73e7f2}

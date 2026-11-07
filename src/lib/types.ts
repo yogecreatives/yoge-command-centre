@@ -40,8 +40,6 @@ export interface Settings {
   sender_name: string; daily_new_limit: number; outreach_gaps: number[]; skip_weekends: boolean
   outreach_templates: Templates; project_task_template: StarterTask[]
 }
-
-export interface Referrer extends Base { name: string; type: ReferrerType; email: string | null; phone: string | null; notes: string | null }
 export interface Prospect extends Base {
   business_id: string; agency_name: string; contact_name: string | null; email: string | null; phone: string | null
   website: string | null; country: string | null; source: string | null; fit: number; stage: Stage
@@ -50,8 +48,11 @@ export interface Prospect extends Base {
   city: string | null; category: string | null; next_action: string | null; lost_reason: string | null; won_project_id: string | null
 }
 export interface Activity { id: string; user_id: string; prospect_id: string; kind: 'email_sent' | 'dm_sent' | 'replied' | 'call' | 'note' | 'stage_change'; note: string | null; created_at: string }
-export interface Income extends Base { business_id: string | null; source: string; amount: number; entry_date: string; status: 'received' | 'expected'; notes: string | null }
 export interface MailTemplate { subject: string; body: string }
 export type Templates = Record<'email_1' | 'follow_up_1' | 'follow_up_2' | 'last_nudge', MailTemplate>
+
+export interface Referrer extends Base { name: string; type: ReferrerType; email: string | null; phone: string | null; notes: string | null }
+export interface Income extends Base { business_id: string | null; source: string; amount: number; entry_date: string; status: 'received' | 'expected'; notes: string | null }
 export interface StarterTask { title: string; days: number }
+export interface Note extends Base { business_id: string | null; title: string; body: string }
 export interface Expense extends Base { business_id: string | null; amount: number; expense_date: string; category: string | null; vendor: string | null; notes: string | null }

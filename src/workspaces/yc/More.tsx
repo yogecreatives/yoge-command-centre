@@ -9,12 +9,12 @@ export function YcMore({ slug = 'yogecreatives', name = 'Yogecreatives' }: { slu
       <div className="group">
         {item('finance', 'Finance', 'Income, expenses and pending payments', 'money')}
         {item('reports', 'Reports', 'Daily, weekly, monthly and yearly', 'tasks')}
-        {item('contacts', 'Contacts', 'Clients and leads in one list', 'users')}
+        {item('contacts', 'Contacts', 'Clients and contacts in one list', 'users')}
         {item('settings', 'Settings', 'Appearance, reminders and imports', 'gear')}
       </div>
     </>
   )
 }
 export function SubBack({ title, sub, slug = 'yogecreatives' }: { title: string; sub?: string; slug?: string }) {
-  return (<><button className="backlink" onClick={() => go('/w/' + slug + '/more')}><Icon name="back" size={18} />More</button><h1 className="pagetitle" style={{ marginTop: 8 }}>{title}</h1>{sub && <p className="pagesub">{sub}</p>}</>)
+  return <><button className="backlink" onClick={() => go('/w/' + slug + '/more')}><Icon name="back" size={18} />More</button><h1 className="pagetitle">{title}</h1>{sub && <p className="pagesub">{sub}</p>}</>
 }

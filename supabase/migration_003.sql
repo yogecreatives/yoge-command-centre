@@ -1,27 +1,9 @@
--- YOGE migration 003: Yogecreatives workspace (client pipeline, DM history, client contact fields, expenses).
--- Run ONCE in the Supabase SQL Editor AFTER migration_002.sql. Additive only: nothing is deleted or rewritten.
+-- YOGE migration 003: client contact fields and expenses.
+-- Run ONCE in the Supabase SQL Editor AFTER migration_002.sql.
 
--- Client pipeline stages (shared prospects table; White Label keeps its own stages)
-alter table public.prospects drop constraint if exists prospects_stage_check;
-alter table public.prospects add constraint prospects_stage_check check (stage in (
-  'prospect','email_1','follow_up_1','follow_up_2','replied','call_booked','test_project','partner','not_now','not_interested','invalid',
-  'new','contacted','interested','proposal_sent','negotiation','won','lost'));
-alter table public.prospects add column if not exists city text;
-alter table public.prospects add column if not exists category text;
-alter table public.prospects add column if not exists next_action text;
-alter table public.prospects add column if not exists lost_reason text;
-alter table public.prospects add column if not exists won_project_id uuid references public.projects(id) on delete set null;
-
--- DM outreach history
-alter table public.prospect_activities drop constraint if exists prospect_activities_kind_check;
-alter table public.prospect_activities add constraint prospect_activities_kind_check
-  check (kind in ('email_sent','dm_sent','replied','call','note','stage_change'));
-
--- Client contact details live with the project (used by Contacts)
 alter table public.projects add column if not exists client_email text;
 alter table public.projects add column if not exists client_phone text;
 
--- Expenses (Finance)
 create table if not exists public.expenses (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,

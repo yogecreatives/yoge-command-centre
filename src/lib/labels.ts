@@ -15,11 +15,10 @@ export const STAGE: Record<Stage, string> = {
 }
 export const IDEA_STATUS: Record<IdeaStatus, string> = { new: 'New', exploring: 'Exploring', converted: 'Converted', archived: 'Archived' }
 
-// Suggested categories per workspace (free text is also allowed).
 export const CATEGORIES: Record<string, string[]> = {
-  'white-label': ['Agency leads', 'Prospect research', 'Cold email outreach', 'Agency follow-ups', 'Partnership discussions', 'Website projects', 'Client delivery', 'Payments', 'Marketing'],
-  yogeworks: ['Business leads', 'Sales partner management', 'Lead follow-ups', 'Client enquiries', 'Website projects', 'Website delivery', 'Payments', 'Marketing campaigns'],
+  'white-label': ['Website projects', 'Client delivery', 'Payments', 'Marketing'],
+  yogeworks: ['Client enquiries', 'Website projects', 'Website delivery', 'Payments', 'Marketing campaigns'],
   yogecreatives: ['Client projects', 'Website development', 'Wix Studio', 'Website maintenance', 'SEO', 'Client communication', 'Payments', 'Marketing', 'Agency operations'],
-  yogefolio: ['Potential clients', 'Sales enquiries', 'Follow-ups', 'Portfolio website projects', 'Website delivery', 'Marketing', 'Payments'],
+  yogefolio: ['Portfolio website projects', 'Website delivery', 'Marketing', 'Payments'],
   other: [],
 }
