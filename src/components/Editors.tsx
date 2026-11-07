@@ -1,4 +1,7 @@
 import { ReactNode, useCallback, useState } from 'react'
+import { ProspectSheet } from './ProspectSheet'
+import { LeadSheet } from './LeadSheet'
+import { RepliedSheet } from './RepliedSheet'
 import { useRoute } from '../lib/route'
 import { EditorCtx, EditorKind, useEditor } from './editorContext'
 import { ReferrerForm, ReferrerPicker } from './Referrers'
@@ -37,6 +40,9 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       {cur?.kind === 'project' && <ProjectForm key={cur.item?.id ?? 'new'} item={cur.item} defaults={cur.defaults} onClose={close} />}
       {cur?.kind === 'referrer' && <ReferrerForm key={cur.item?.id ?? 'new'} item={cur.item} onClose={close} />}
       {cur?.kind === 'idea' && <IdeaForm key={cur.item?.id ?? 'new'} item={cur.item} defaults={cur.defaults} onClose={close} />}
+      {cur?.kind === 'prospect' && <ProspectSheet key={cur.item?.id ?? 'new'} item={cur.item} defaults={cur.defaults} onClose={close} />}
+      {cur?.kind === 'lead' && <LeadSheet key={cur.item?.id ?? 'new'} item={cur.item} onClose={close} />}
+      {cur?.kind === 'replied' && cur.item && <RepliedSheet key={cur.item.id} item={cur.item} onClose={close} />}
     </EditorCtx.Provider>
   )
 }
