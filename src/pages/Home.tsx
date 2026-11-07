@@ -36,8 +36,7 @@ export function Home() {
     }
     return {
       id: b.slug, name: b.name, chip: `${bt.length} pending`, alert,
-      info: `${bf.filter(f => f.follow_up_date <= today).length} follow-ups due · ${active} projects in progress`,
-      mini: [[String(bt.length), 'Pending'], [String(overdueTasks), 'Overdue'], [String(bf.filter(f => f.follow_up_date <= today).length), 'Follow-ups']]
+      info: `${bf.filter(f => f.follow_up_date <= today).length} follow-ups due · ${active} projects in progress`
     }
   })
 
