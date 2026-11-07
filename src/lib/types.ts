@@ -54,4 +54,5 @@ export type Templates = Record<'email_1' | 'follow_up_1' | 'follow_up_2' | 'last
 export interface Referrer extends Base { name: string; type: ReferrerType; email: string | null; phone: string | null; notes: string | null }
 export interface Income extends Base { business_id: string | null; source: string; amount: number; entry_date: string; status: 'received' | 'expected'; notes: string | null }
 export interface StarterTask { title: string; days: number }
+export interface Note extends Base { business_id: string | null; title: string; body: string }
 export interface Expense extends Base { business_id: string | null; amount: number; expense_date: string; category: string | null; vendor: string | null; notes: string | null }
