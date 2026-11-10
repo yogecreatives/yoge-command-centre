@@ -112,7 +112,10 @@ function TaskForm({ item, defaults, onClose }: { item?: Task; defaults?: any; on
   const slug = bizById(f.business_id)?.slug ?? ''
   const projOpts = projects.filter(p => p.business_id === f.business_id && p.status !== 'completed')
   const save = async () => {
+    setErr('')
     if (!f.title.trim()) return setErr('Give the task a name.')
+    if (!f.business_id) return setErr('Choose a workspace.')
+    if (f.project_id && !projOpts.some(p => p.id === f.project_id)) return setErr('That project is no longer available in this workspace.')
     setSaving(true)
     const row = {
       title: f.title.trim(), business_id: f.business_id, category: nz(f.category), task_type: f.task_type, priority: f.priority, status: f.status,
@@ -121,7 +124,13 @@ function TaskForm({ item, defaults, onClose }: { item?: Task; defaults?: any; on
     }
     const res = item ? await update('tasks', item.id, row) : await create('tasks', row)
     setSaving(false)
-    if (res) { toast(item ? 'Task saved' : 'Task added'); defaults?.afterSave?.(res); onClose() }
+    if (!res) {
+      setErr('Task could not be saved. Check your connection and the error message, then try again.')
+      return
+    }
+    toast(item ? 'Task saved' : 'Task added')
+    defaults?.afterSave?.(res)
+    onClose()
   }
   return (
     <Sheet title={item ? 'Edit task' : 'New task'} onClose={onClose}>
