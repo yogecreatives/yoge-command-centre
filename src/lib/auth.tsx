@@ -14,6 +14,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data }) => { setSession(data.session); setLoading(false) })
     const { data } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s)
+      if (event === 'SIGNED_IN') {
+        // Always start a fresh login on Home instead of restoring an old hash route.
+        location.hash = '/home'
+      }
+      if (event === 'SIGNED_OUT') {
+        location.hash = '/home'
+      }
       if (event === 'PASSWORD_RECOVERY') setRecovery(true)
     })
     return () => data.subscription.unsubscribe()
