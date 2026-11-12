@@ -130,6 +130,56 @@ main{max-width:980px;margin:0 auto;padding:24px 24px 110px}
 #nav button{max-width:none;border-top:0;border-radius:12px;padding:10px 8px;font-size:.74rem}
 #nav button[aria-current="page"]{background:var(--group2);color:var(--ink);border-top:0}
 @media(max-width:700px){main{padding:18px 14px 104px}.hero{padding:18px}.tiles{grid-template-columns:repeat(2,1fr)}#nav{bottom:8px;width:calc(100% - 20px)}}
+
+/* Final Command Centre parity: accent + navigation + hover states */
+:root{--accent:#0071e3;--accent-ink:#ffffff}
+:root[data-theme="light"]{--accent:#0071e3;--accent-ink:#ffffff}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--accent:#d4ff3f;--accent-ink:#111111}
+}
+:root[data-theme="dark"]{--accent:#d4ff3f;--accent-ink:#111111}
+
+.tabs button{transition:background .18s ease,color .18s ease,transform .18s ease}
+.tabs button:hover{background:var(--line);color:var(--ink)}
+.tabs button[aria-pressed="true"],.tabs button[aria-pressed="true"]:hover{background:var(--accent);color:var(--accent-ink)}
+
+.tools button,.tools select,.dlg-b button{transition:background .18s ease,color .18s ease,border-color .18s ease,transform .12s ease,box-shadow .18s ease}
+.tools button:hover,.tools select:hover,.dlg-b button:hover{background:var(--line);border-color:var(--accent)}
+.tools .add,.tools .add:hover{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);box-shadow:0 4px 14px rgba(0,113,227,.18)}
+
+#nav{
+  position:fixed;left:50%;right:auto;bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  transform:translateX(-50%);width:min(560px,calc(100% - 24px));
+  display:flex;gap:2px;justify-content:stretch;padding:4px;
+  border:1px solid var(--line);border-radius:999px;
+  background:color-mix(in srgb,var(--card) 82%,transparent);
+  backdrop-filter:saturate(180%) blur(22px);-webkit-backdrop-filter:saturate(180%) blur(22px);
+  box-shadow:0 8px 24px rgba(0,0,0,.10);z-index:20
+}
+#nav button{
+  flex:1;text-align:center;max-width:none;border:0;border-top:0!important;
+  background:transparent;color:var(--mute);padding:11px 8px;border-radius:999px;
+  font:inherit;font-size:.78rem;font-weight:500;cursor:pointer;
+  transition:flex .28s cubic-bezier(.2,.8,.2,1),background .18s ease,color .18s ease,transform .12s ease
+}
+#nav button:hover{background:var(--line);color:var(--ink)}
+#nav button[aria-current="page"]{
+  flex:1.5;background:var(--accent);color:var(--accent-ink);
+  font-weight:600;border-top:0!important
+}
+#nav button[aria-current="page"]:hover{background:var(--accent);color:var(--accent-ink);transform:translateY(-1px)}
+#nav button:active{transform:scale(.98)}
+#nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.theme{transition:background .18s ease,color .18s ease,border-color .18s ease}
+.theme:hover{background:var(--line);color:var(--ink);border-color:var(--accent)}
+
+.hero,.tile,.pomo,.orow{transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.hero:hover,.tile:hover,.pomo:hover,.orow:hover{border-color:color-mix(in srgb,var(--accent) 35%,var(--line));box-shadow:0 4px 18px rgba(0,0,0,.06)}
+
+@media(max-width:700px){
+  #nav{bottom:calc(8px + env(safe-area-inset-bottom,0px));width:calc(100% - 20px)}
+}
 </style>
 </head>
 <body>
