@@ -4,13 +4,14 @@ import { go } from '../lib/route'
 import { businessRoute, visibleBusinesses } from '../lib/workspaces'
 import { Icon } from './Icon'
 
-export function BizSwitcher({ slug, label, current }: { slug?: string; label?: string; current?: 'home' | 'yogecreatives' | 'yogeworks' | 'white-label' }) {
+export function BizSwitcher({ slug, label, current }: { slug?: string; label?: string; current?: 'home' | 'planner' | 'yogecreatives' | 'yogeworks' | 'white-label' }) {
   const { businesses } = useData()
   const [open, setOpen] = useState(false)
   const cur = businesses.find(b => b.slug === slug)
   const name = label ?? cur?.name ?? 'YOGE'
   const items = [
     { id: 'home', label: 'Home', path: '/home', sub: 'Command Centre' },
+    { id: 'planner', label: 'My Day Planner', path: '/w/planner', sub: 'Plan your day' },
     ...visibleBusinesses(businesses).map(b => ({ id: b.slug, label: b.name, path: businessRoute(b.slug), sub: 'Open workspace' })),
   ]
   return (
