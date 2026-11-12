@@ -86,6 +86,20 @@ export function Home() {
       </div>
 
       <div className="workspace-section-head"><h2>Your workspaces</h2><span>Tap to open</span></div>
+      <button
+        className="listcard"
+        onClick={() => go('/w/planner')}
+        style={{ width: '100%', border: 0, textAlign: 'left', marginBottom: 12, cursor: 'pointer' }}
+      >
+        <div className="row" style={{ width: '100%' }}>
+          <span className="tile sm"><Icon name="today" size={18} /></span>
+          <span className="row-main">
+            <span className="row-title">My Day Planner</span>
+            <span className="row-sub">Plan your day · Focus · Quick Tasks</span>
+          </span>
+          <Icon name="chevron" size={16} />
+        </div>
+      </button>
       {cards.length ? <WalletStack cards={cards} onOpen={slug => go(businessRoute(slug))} /> : <div className="deck-empty">Setting up your businesses…</div>}
 
       <div className="home-section-head"><h2>Today's priorities</h2><button onClick={() => go('/tasks')}>All workspaces</button></div>
