@@ -15,6 +15,7 @@ import { YcPipeline } from './yc/Pipeline'
 import { Pipeline } from '../pages/Pipeline'
 import { Settings } from '../pages/Settings'
 import { Inbox } from '../pages/Inbox'
+import { PlannerWorkspace } from './Planner'
 
 export function WorkspaceRoute({ parts }: { parts: string[] }) {
   const { bizBySlug, tasks, followUps, projects } = useData()
@@ -27,7 +28,7 @@ export function WorkspaceRoute({ parts }: { parts: string[] }) {
   const query = new URLSearchParams(route.split('?')[1] ?? '')
 
   useEffect(() => {
-    if (slug !== 'yogecreatives' && slug !== 'white-label' && slug !== 'yogeworks') go(businessRoute(slug || ''))
+    if (slug !== 'planner' && slug !== 'yogecreatives' && slug !== 'white-label' && slug !== 'yogeworks') go(businessRoute(slug || ''))
   }, [slug])
 
   useEffect(() => {
@@ -45,6 +46,8 @@ export function WorkspaceRoute({ parts }: { parts: string[] }) {
       if (item && item.business_id === biz?.id) open('project', item)
     }
   }, [route, slug, tasks, followUps, projects, open])
+
+  if (slug === 'planner') return <PlannerWorkspace />
 
   if (slug === 'white-label') {
     if (!biz) return <div className="shell2"><div className="deck-empty">White Label workspace not found. Reload the app.</div></div>
