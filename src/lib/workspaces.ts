@@ -1,7 +1,7 @@
 import { Business } from './types'
 
 export const HIDDEN_SLUGS = ['other', 'yogefolio']
-export const ORDER = ['yogecreatives', 'white-label', 'yogeworks']
+export const ORDER = ['yogecreatives', 'yogeworks', 'white-label']
 
 export const visibleBusinesses = (list: Business[]) =>
   list.filter(b => !HIDDEN_SLUGS.includes(b.slug)).sort((a, b) => {
