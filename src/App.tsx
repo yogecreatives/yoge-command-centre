@@ -71,8 +71,8 @@ function Shell() {
   else page = <Today />
 
   const activeNav = path === '/home' || path === '/' ? 'home'
-    : path.startsWith('/tasks') ? 'tasks'
-    : path.startsWith('/projects') ? 'projects'
+    : path === '/calendar' ? 'calendar'
+    : path === '/notes' ? 'notes'
     : 'more'
 
   return (
