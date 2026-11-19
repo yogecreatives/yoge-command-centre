@@ -122,7 +122,9 @@ function AdminDashboard() {
   return (
     <section className="section"><div className="section-title"><span>Partner access</span></div><div className="group">
       {teamProfiles.filter(p => p.role === 'member').map(p => (
-        <div key={p.user_id} className="row"><div className="row-main"><div className="row-title">{p.full_name || p.email}</div>
+        <div key={p.user_id} className="row"><div className="row-main">
+          <div className="row-title">{p.full_name || 'Partner'}</div>
+          <div className="row-sub">{p.email}</div>
           <div className="row-sub">{businesses.map(b => <label key={b.id} style={{ marginRight: 10 }}><input type="checkbox" checked={memberships.some(m => m.user_id === p.user_id && m.business_id === b.id)} onChange={e => setMembership(p.user_id, b.id, e.target.checked)} /> {b.name}</label>)}</div>
         </div></div>
       ))}
