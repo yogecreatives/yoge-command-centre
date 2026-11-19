@@ -168,7 +168,7 @@ function AdminDashboard() {
     <section className="section">
       <div className="section-title">
         <button className="partner-access-title" onClick={() => { setUnlockError(''); setPassword(''); setUnlocked(v => !v) }}>
-          <span>Partner access</span><Icon name={unlocked ? 'chevronUp' : 'chevron'} size={15} />
+          <span>Partner access</span><Icon name="chevron" size={15} />
         </button>
       </div>
       {!unlocked ? (
