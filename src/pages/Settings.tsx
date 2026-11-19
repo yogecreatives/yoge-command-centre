@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 import { useData } from '../lib/data'
 import { Icon } from '../ui/Icon'
 import { go } from '../lib/route'
@@ -117,16 +117,55 @@ export function Settings({ scope }: { scope?: string } = {}) {
   )
 }
 
+async function resizeAvatar(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file)
+  const max = 320
+  const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale))
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale))
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Could not prepare image')
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+  bitmap.close()
+  return canvas.toDataURL('image/jpeg', 0.82)
+}
+
 function AdminDashboard() {
-  const { teamProfiles, businesses, memberships, setMembership } = useData()
+  const { teamProfiles, businesses, memberships, setMembership, updateProfile } = useData()
+  const [uploading, setUploading] = useState<string | null>(null)
+
+  const uploadAvatar = async (userId: string, e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (!file.type.startsWith('image/')) return
+    setUploading(userId)
+    try {
+      const src = await resizeAvatar(file)
+      await updateProfile(userId, { avatar_url: src })
+    } finally {
+      setUploading(null)
+    }
+  }
   return (
     <section className="section"><div className="section-title"><span>Partner access</span></div><div className="group">
       {teamProfiles.filter(p => p.role === 'member').map(p => (
-        <div key={p.user_id} className="row"><div className="row-main">
-          <div className="row-title">{p.full_name || 'Partner'}</div>
-          <div className="row-sub">{p.email}</div>
-          <div className="row-sub">{businesses.map(b => <label key={b.id} style={{ marginRight: 10 }}><input type="checkbox" checked={memberships.some(m => m.user_id === p.user_id && m.business_id === b.id)} onChange={e => setMembership(p.user_id, b.id, e.target.checked)} /> {b.name}</label>)}</div>
-        </div></div>
+        <div key={p.user_id} className="row">
+          <div className="partner-access-avatar">
+            {p.avatar_url ? <img src={p.avatar_url} alt="" /> : <span>{(p.full_name || 'P').trim().slice(0, 1).toUpperCase()}</span>}
+          </div>
+          <div className="row-main">
+            <div className="row-title">{p.full_name || 'Partner'}</div>
+            <div className="row-sub">{p.email}</div>
+            <div className="row-sub partner-access-actions">
+              <label className="btn small"> {uploading === p.user_id ? 'Uploading…' : 'Upload photo'}
+                <input type="file" accept="image/*" hidden onChange={e => uploadAvatar(p.user_id, e)} disabled={uploading === p.user_id} />
+              </label>
+              {businesses.map(b => <label key={b.id} style={{ marginRight: 10 }}><input type="checkbox" checked={memberships.some(m => m.user_id === p.user_id && m.business_id === b.id)} onChange={e => setMembership(p.user_id, b.id, e.target.checked)} /> {b.name}</label>)}
+            </div>
+          </div>
+        </div>
       ))}
     </div></section>
   )
