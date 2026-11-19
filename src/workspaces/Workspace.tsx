@@ -19,7 +19,7 @@ export function WorkspaceShell({ slug, tab, children, tabs = YC_TABS }: { slug: 
   return (
     <div className={`shell2 ws-${slug}`}><div className="page">
       <div className="wshead"><BizSwitcher slug={slug} current={slug as any} />
-        <button className="iconbtn badgeh" onClick={() => go(`/w/${slug}/notifications`)} aria-label="Notifications"><Icon name="bell" />{unread > 0 && <b>{unread > 9 ? '9+' : unread}</b>}</button>
+        <div className="wshead-actions"><button className="iconbtn badgeh" onClick={() => go(`/w/${slug}/notifications`)} aria-label="Notifications"><Icon name="bell" />{unread > 0 && <b>{unread > 9 ? '9+' : unread}</b>}</button></div>
       </div>
       {children}
       <PillNav tabs={tabs} active={tab} onGo={id => go(`/w/${slug}/${id}`)} />
