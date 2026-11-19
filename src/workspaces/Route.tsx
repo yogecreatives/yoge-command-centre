@@ -47,7 +47,10 @@ export function WorkspaceRoute({ parts }: { parts: string[] }) {
     }
   }, [route, slug, tasks, followUps, projects, open])
 
-  if (slug === 'planner') {\n    if (!isAdmin) return null\n    return <PlannerWorkspace />\n  }
+  if (slug === 'planner') {
+    if (!isAdmin) return null
+    return <PlannerWorkspace />
+  }
 
   if (slug === 'white-label') {
     if (!biz) return <div className="shell2"><div className="deck-empty">White Label workspace not found. Reload the app.</div></div>
