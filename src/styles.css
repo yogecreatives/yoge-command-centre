@@ -231,6 +231,13 @@ a.btn{text-decoration:none}label.btn{cursor:pointer}
 .shell2{min-height:100dvh;padding:calc(var(--sat) + 14px) 18px calc(var(--sab) + 110px)}
 .shell2 .page{max-width:640px;margin:0 auto}
 .wshead{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.wshead-actions{display:flex;align-items:center;gap:8px;flex:none}
+.wshead-actions .iconbtn{flex:none}
+@media(max-width:520px){
+  .wshead{gap:10px}
+  .wshead-actions{gap:6px}
+  .wshead-actions .iconbtn{width:40px;height:40px}
+}
 .chip-sw{display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:999px;background:var(--group);border:.5px solid var(--line);font-weight:600;font-size:13px;letter-spacing:.02em}
 .chip-sw .av{width:26px;height:26px;border-radius:50%;background:var(--primary);color:var(--primary-ink);display:grid;place-items:center;font-size:12px;font-weight:700}
 .chip-sw i{font-style:normal;color:var(--muted)}
