@@ -66,7 +66,7 @@ export function Home() {
   return (
     <div className="shell2 home-shell"><div className="page">
       <div className="wshead"><BizSwitcher label="Home" current="home" />
-        <div style={{display:'flex',gap:8}}>
+        <div className="wshead-actions">
           <button className="iconbtn badgeh" onClick={() => go('/inbox')} aria-label="Notifications"><Icon name="bell" />{reminderCount > 0 && <b>{reminderCount > 9 ? '9+' : reminderCount}</b>}</button>
           <button className="iconbtn" onClick={() => go('/settings')} aria-label="Settings"><Icon name="gear" /></button>
         </div>
