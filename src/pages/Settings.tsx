@@ -137,6 +137,7 @@ function AdminDashboard() {
   const [uploading, setUploading] = useState<string | null>(null)
   const [unlocked, setUnlocked] = useState(false)
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [unlocking, setUnlocking] = useState(false)
   const [unlockError, setUnlockError] = useState('')
 
@@ -155,11 +156,12 @@ function AdminDashboard() {
   }
   const unlock = async () => {
     setUnlockError('')
+    sessionStorage.setItem('yoge_skip_login_redirect', '1')
     if (!password.trim()) return setUnlockError('Enter your admin password.')
     setUnlocking(true)
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     setUnlocking(false)
-    if (error) return setUnlockError('Incorrect password.')
+    if (error) { sessionStorage.removeItem('yoge_skip_login_redirect'); return setUnlockError('Incorrect password.') }
     setPassword('')
     setUnlocked(true)
   }
@@ -175,15 +177,22 @@ function AdminDashboard() {
         <div className="group pad">
           <p className="row-sub">Admin password required to view partner access.</p>
           <div className="partner-unlock">
-            <input
-              className="input"
-              type="password"
-              value={password}
-              placeholder="Admin password"
-              autoComplete="current-password"
-              onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') unlock() }}
-            />
+            <div className="password-field">
+              <input
+                className="input"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                placeholder="Admin password"
+                autoComplete="current-password"
+                onChange={e => setPassword(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') unlock() }}
+              />
+              <button type="button" className="password-eye" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  {showPassword ? <path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.1A10.8 10.8 0 0112 5c5 0 9 3.1 10.5 7-0.4 1.2-1.1 2.3-2 3.2M6.2 6.2C4.4 7.3 2.9 9 1.5 12c1.5 3.9 5.5 7 10.5 7 1.3 0 2.5-.2 3.6-.6" /> : <><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z" /><circle cx="12" cy="12" r="2.5" /></>}
+                </svg>
+              </button>
+            </div>
             <button className="btn primary" onClick={unlock} disabled={unlocking}>
               {unlocking ? 'Checking…' : 'Unlock'}
             </button>
