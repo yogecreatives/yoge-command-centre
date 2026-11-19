@@ -3,6 +3,7 @@ import { useData } from '../lib/data'
 import { Icon } from '../ui/Icon'
 import { go } from '../lib/route'
 import { useToast } from '../ui/toast'
+import { supabase } from '../lib/supabase'
 import { todayISO } from '../lib/dates'
 import { Segmented } from '../ui/Sheet'
 import { getTheme, setTheme, ThemePref } from '../lib/theme'
@@ -132,8 +133,12 @@ async function resizeAvatar(file: File): Promise<string> {
 }
 
 function AdminDashboard() {
-  const { teamProfiles, businesses, memberships, setMembership, updateProfile } = useData()
+  const { teamProfiles, businesses, memberships, setMembership, updateProfile, email } = useData()
   const [uploading, setUploading] = useState<string | null>(null)
+  const [unlocked, setUnlocked] = useState(false)
+  const [password, setPassword] = useState('')
+  const [unlocking, setUnlocking] = useState(false)
+  const [unlockError, setUnlockError] = useState('')
 
   const uploadAvatar = async (userId: string, e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -148,25 +153,64 @@ function AdminDashboard() {
       setUploading(null)
     }
   }
+  const unlock = async () => {
+    setUnlockError('')
+    if (!password.trim()) return setUnlockError('Enter your admin password.')
+    setUnlocking(true)
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    setUnlocking(false)
+    if (error) return setUnlockError('Incorrect password.')
+    setPassword('')
+    setUnlocked(true)
+  }
+
   return (
-    <section className="section"><div className="section-title"><span>Partner access</span></div><div className="group">
-      {teamProfiles.filter(p => p.role === 'member').map(p => (
-        <div key={p.user_id} className="row">
-          <div className="partner-access-avatar">
-            {p.avatar_url ? <img src={p.avatar_url} alt="" /> : <span>{(p.full_name || 'P').trim().slice(0, 1).toUpperCase()}</span>}
+    <section className="section">
+      <div className="section-title">
+        <button className="partner-access-title" onClick={() => { setUnlockError(''); setPassword(''); setUnlocked(v => !v) }}>
+          <span>Partner access</span><Icon name={unlocked ? 'chevronUp' : 'chevron'} size={15} />
+        </button>
+      </div>
+      {!unlocked ? (
+        <div className="group pad">
+          <p className="row-sub">Admin password required to view partner access.</p>
+          <div className="partner-unlock">
+            <input
+              className="input"
+              type="password"
+              value={password}
+              placeholder="Admin password"
+              autoComplete="current-password"
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') unlock() }}
+            />
+            <button className="btn primary" onClick={unlock} disabled={unlocking}>
+              {unlocking ? 'Checking…' : 'Unlock'}
+            </button>
           </div>
-          <div className="row-main">
-            <div className="row-title">{p.full_name || 'Partner'}</div>
-            <div className="row-sub">{p.email}</div>
-            <div className="row-sub partner-access-actions">
-              <label className="btn small"> {uploading === p.user_id ? 'Uploading…' : 'Upload photo'}
-                <input type="file" accept="image/*" hidden onChange={e => uploadAvatar(p.user_id, e)} disabled={uploading === p.user_id} />
-              </label>
-              {businesses.map(b => <label key={b.id} style={{ marginRight: 10 }}><input type="checkbox" checked={memberships.some(m => m.user_id === p.user_id && m.business_id === b.id)} onChange={e => setMembership(p.user_id, b.id, e.target.checked)} /> {b.name}</label>)}
-            </div>
-          </div>
+          {unlockError && <p className="foot error-text">{unlockError}</p>}
         </div>
-      ))}
-    </div></section>
+      ) : (
+        <div className="group">
+          {teamProfiles.filter(p => p.role === 'member').map(p => (
+            <div key={p.user_id} className="row">
+              <div className="partner-access-avatar">
+                {p.avatar_url ? <img src={p.avatar_url} alt="" /> : <span>{(p.full_name || 'P').trim().slice(0, 1).toUpperCase()}</span>}
+              </div>
+              <div className="row-main">
+                <div className="row-title">{p.full_name || 'Partner'}</div>
+                <div className="row-sub">{p.email}</div>
+                <div className="row-sub partner-access-actions">
+                  <label className="btn small"> {uploading === p.user_id ? 'Uploading…' : 'Upload photo'}
+                    <input type="file" accept="image/*" hidden onChange={e => uploadAvatar(p.user_id, e)} disabled={uploading === p.user_id} />
+                  </label>
+                  {businesses.map(b => <label key={b.id} style={{ marginRight: 10 }}><input type="checkbox" checked={memberships.some(m => m.user_id === p.user_id && m.business_id === b.id)} onChange={e => setMembership(p.user_id, b.id, e.target.checked)} /> {b.name}</label>)}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   )
 }
