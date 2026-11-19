@@ -25,7 +25,7 @@ export function YcTasks({ bizId }: { bizId: string }) {
   return (
     <>
       <div className="wshead" style={{ marginBottom: 6 }}><div><h1 className="pagetitle">Tasks</h1><p className="pagesub">Keep daily agency work moving.</p></div>
-        <button className="btn primary" onClick={() => open('task', undefined, { business_id: bizId, due_date: scope === 'today' ? today : undefined })}><Icon name="plus" size={18} /> Add task</button></div>
+        <button className="iconbtn" onClick={() => open('task', undefined, { business_id: bizId, due_date: scope === 'today' ? today : undefined })} aria-label="Add task"><Icon name="plus" size={21} /></button></div>
       <div className="search"><Icon name="search" size={18} /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Search tasks" /></div>
       <div className="tabrow">{labels.map(([k, l]) => <button key={k} className={scope === k ? 'on' : ''} onClick={() => setScope(k)}>{l}{count(k) ? ` · ${count(k)}` : ''}</button>)}</div>
       <Group items={list.map(t => <TaskRow key={t.id} t={t} showBusiness={false} />)}
