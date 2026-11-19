@@ -8,7 +8,7 @@ import { todayISO } from '../lib/dates'
 import { businessRoute, visibleBusinesses } from '../lib/workspaces'
 
 export function Home() {
-  const { businesses, tasks, followUps, projects, notifications, profile } = useData()
+  const { businesses, tasks, followUps, projects, notifications, profile, isAdmin } = useData()
   const today = todayISO()
   const list = visibleBusinesses(businesses)
   const ids = new Set(list.map(b => b.id))
@@ -88,18 +88,15 @@ export function Home() {
       <div className="workspace-section-head"><h2>Your workspaces</h2><span>Tap to open</span></div>
       {cards.length ? (
         <WalletStack
-          cards={[
-            { id: 'planner', name: 'My Day Planner', chip: 'PLANNER', hi: true, info: 'Plan your day · Focus · Track' },
-            ...cards,
-          ]}
+          cards={isAdmin ? [{ id: 'planner', name: 'My Day Planner', chip: 'PLANNER', hi: true, info: 'Plan your day · Focus · Track' }, ...cards] : cards}
           onOpen={id => id === 'planner' ? go('/w/planner') : go(businessRoute(id))}
         />
-      ) : (
+      ) : isAdmin ? (
         <WalletStack
           cards={[{ id: 'planner', name: 'My Day Planner', chip: 'PLANNER', hi: true, info: 'Plan your day · Focus · Track' }]}
           onOpen={() => go('/w/planner')}
         />
-      )}
+      ) : <div className="empty">No workspaces available.</div>}
 
       <div className="home-section-head"><h2>Today's priorities</h2><button onClick={() => go('/tasks')}>All workspaces</button></div>
       <div className="home-listcard">
