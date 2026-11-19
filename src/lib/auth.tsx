@@ -15,8 +15,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s)
       if (event === 'SIGNED_IN') {
-        // Always start a fresh login on Home instead of restoring an old hash route.
-        location.hash = '/home'
+        const skipRedirect = sessionStorage.getItem('yoge_skip_login_redirect') === '1'
+        if (skipRedirect) {
+          sessionStorage.removeItem('yoge_skip_login_redirect')
+        } else {
+          // Always start a fresh login on Home instead of restoring an old hash route.
+          location.hash = '/home'
+        }
       }
       if (event === 'SIGNED_OUT') {
         location.hash = '/home'
