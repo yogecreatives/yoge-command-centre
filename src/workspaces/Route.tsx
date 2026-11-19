@@ -18,7 +18,7 @@ import { Inbox } from '../pages/Inbox'
 import { PlannerWorkspace } from './Planner'
 
 export function WorkspaceRoute({ parts }: { parts: string[] }) {
-  const { bizBySlug, tasks, followUps, projects } = useData()
+  const { bizBySlug, tasks, followUps, projects, isAdmin } = useData()
   const open = useEditor()
   const route = useRoute()
   const slug = parts[1]
@@ -47,7 +47,7 @@ export function WorkspaceRoute({ parts }: { parts: string[] }) {
     }
   }, [route, slug, tasks, followUps, projects, open])
 
-  if (slug === 'planner') return <PlannerWorkspace />
+  if (slug === 'planner') {\n    if (!isAdmin) return null\n    return <PlannerWorkspace />\n  }
 
   if (slug === 'white-label') {
     if (!biz) return <div className="shell2"><div className="deck-empty">White Label workspace not found. Reload the app.</div></div>
