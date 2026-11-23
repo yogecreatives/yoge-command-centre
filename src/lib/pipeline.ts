@@ -38,7 +38,7 @@ export function sentPatch(p: Prospect, st: Settings, today: string): Partial<Pro
 
 export function fill(text: string, p: Prospect, sender: string) {
   const contact = (p.contact_name || '').trim().split(/\s+/)[0] || 'there'
-  return text.replace(/\{agency\}/g, p.agency_name).replace(/\{contact\}/g, contact).replace(/\{sender\}/g, sender)
+  return text.replace(/\{agency\}/g, () => p.agency_name).replace(/\{contact\}/g, () => contact).replace(/\{sender\}/g, () => sender)
 }
 export function mailtoFor(p: Prospect, key: SendKey, t: Templates, sender: string) {
   const tpl = t[key]; if (!p.email) return null
@@ -72,7 +72,7 @@ export function parseCsv(text: string): string[][] {
   return rows.filter(r => r.some(c => c.trim()))
 }
 export const toCsv = (rows: (string | number | null | undefined)[][]) =>
-  rows.map(r => r.map(c => { const v = c == null ? '' : String(c); return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v }).join(',')).join('\n')
+  rows.map(r => r.map(c => { let v = c == null ? '' : String(c); if (/^[=+\-@]/.test(v)) v = `\t${v}`; return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v }).join(',')).join('\n')
 export function download(name: string, text: string) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' })); a.download = name; a.click(); URL.revokeObjectURL(a.href)
 }
