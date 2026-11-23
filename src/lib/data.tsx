@@ -75,7 +75,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       rows.push(...(data ?? []))
       if (!data || data.length < 1000) break
     }
-    return rows
+    return { data: rows, error: null }
   }, [])
 
   const load = useCallback(async () => {
