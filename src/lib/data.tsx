@@ -65,24 +65,37 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Settings | null>(null)
   const loaded = useRef(false)
 
+  const fetchAll = useCallback(async (table: TableKey, order?: { column: string; ascending?: boolean }) => {
+    const rows: any[] = []
+    for (let from = 0; ; from += 1000) {
+      let q: any = supabase.from(table).select('*').range(from, from + 999)
+      if (order) q = q.order(order.column, { ascending: order.ascending ?? true })
+      const { data, error } = await q
+      if (error) throw new Error(error.message)
+      rows.push(...(data ?? []))
+      if (!data || data.length < 1000) break
+    }
+    return rows
+  }, [])
+
   const load = useCallback(async () => {
     const [b, me, profs, memberships, t, f, p, i, n, s, rf, pr, pa, no, inc, ex] = await Promise.all([
       supabase.from('businesses').select('*').order('sort_order'),
       supabase.from('profiles').select('*').eq('user_id', uid).maybeSingle(),
       supabase.from('profiles').select('*').order('full_name'),
       supabase.from('workspace_memberships').select('*'),
-      supabase.from('tasks').select('*'),
-      supabase.from('follow_ups').select('*'),
-      supabase.from('projects').select('*'),
-      supabase.from('ideas').select('*'),
+      fetchAll('tasks'),
+      fetchAll('follow_ups'),
+      fetchAll('projects'),
+      fetchAll('ideas'),
       supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(200),
       supabase.from('user_settings').select('*').maybeSingle(),
-      supabase.from('referrers').select('*'),
-      supabase.from('prospects').select('*'),
-      supabase.from('prospect_activities').select('*'),
-      supabase.from('notes').select('*').order('updated_at', { ascending: false }),
-      supabase.from('income_entries').select('*'),
-      supabase.from('expenses').select('*'),
+      fetchAll('referrers'),
+      fetchAll('prospects'),
+      fetchAll('prospect_activities'),
+      fetchAll('notes', { column: 'updated_at', ascending: false }),
+      fetchAll('income_entries'),
+      fetchAll('expenses'),
     ])
     const failed = [b, me, profs, memberships, t, f, p, i, n, s, rf, pr, pa, no, inc, ex].find(r => r.error)
     if (failed?.error) throw new Error(failed.error.message)
@@ -104,7 +117,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       notifications: n.data as AppNotification[], referrers: rf.data as Referrer[], prospects: pr.data as Prospect[], prospect_activities: pa.data as Activity[], notes: no.data as Note[], income_entries: inc.data as Income[], expenses: ex.data as Expense[]
     })
     setSettings((s.data ?? null) as Settings | null)
-  }, [uid])
+  }, [uid, fetchAll])
 
   const reload = useCallback(async () => {
     try { await load(); setError(null); setState('ready') }
