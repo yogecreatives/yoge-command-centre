@@ -56,7 +56,7 @@ export function Money() {
         <div className="stat"><strong>{f(got)}</strong><span>Wix commission received</span></div>
       </div>
       <Group title="By year" items={years.map(y => {
-        const l = projects.filter(p => (p.start_date || '').startsWith(y))
+        const l = projects.filter(p => (p.start_date || '').startsWith(y) && p.status !== 'dropped')
         const t = l.reduce((a, p) => a + Number(p.total_amount), 0), pd = l.reduce((a, p) => a + Number(p.paid_amount), 0), b = l.reduce((a, p) => a + (p.status === 'dropped' ? 0 : Number(p.balance_amount)), 0)
         return <div key={y} className="row col"><div className="rt"><div className="row-title">{y}</div><div className="v">{l.length} projects</div></div><div className="m"><span>Billed <b>{f(t)}</b></span><span>Paid <b>{f(pd)}</b></span>{b > 0 && <span className="warn">Unpaid <b>{f(b)}</b></span>}</div></div>
       })} empty="No projects yet." />
