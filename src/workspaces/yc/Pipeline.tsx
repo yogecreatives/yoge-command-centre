@@ -46,7 +46,7 @@ export function YcPipeline({ bizId }: { bizId: string }) {
         <span className={`chip ${p.next_action_date && p.next_action_date < today ? 'red' : p.next_action_date ? 'amber' : ''}`}>{p.next_action_date ? dueLabel(p.next_action_date, today) : STAGE[p.stage]}</span></div>
       <div className="act"><button className="mini" disabled={sending.current} onClick={async () => { if (sending.current) return; sending.current = true; try { await logOut(p, 'email_sent') } finally { sending.current = false } }}>Email sent</button><button className="mini" disabled={sending.current} onClick={async () => { if (sending.current) return; sending.current = true; try { await logOut(p, 'dm_sent') } finally { sending.current = false } }}>DM sent</button><button className="mini rep" onClick={() => replied(p)}>Replied</button></div>
     </div>
-  )}
+  }
   const Plain = ({ p }: { p: Prospect }) => (
     <button className="row" onClick={() => open('lead', p)}>
       <div className="row-main"><div className="row-title">{p.agency_name}</div>
