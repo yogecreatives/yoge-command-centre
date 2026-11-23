@@ -403,6 +403,7 @@ render();setInterval(()=>{if(!$("dlg").open)render();if(!pm.run)pmShow()},30000)
 
 <script>
 window.addEventListener("message", function(e){
+  if(e.origin !== window.location.origin) return;
   if(!e.data || e.data.type!=="planner-view") return;
   var v=e.data.view;
   if(["today","focus","track","more"].includes(v)) showView(v);
