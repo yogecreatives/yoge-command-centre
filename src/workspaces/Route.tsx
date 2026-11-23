@@ -37,13 +37,13 @@ export function WorkspaceRoute({ parts }: { parts: string[] }) {
     const projectId = query.get('project')
     if (taskId) {
       const item = tasks.find(t => t.id === taskId)
-      if (item && item.business_id === biz?.id) open('task', item)
+      if (item && item.business_id === biz?.id) { open('task', item); go(route.split('?')[0]) }
     } else if (followupId) {
       const item = followUps.find(f => f.id === followupId)
-      if (item && item.business_id === biz?.id) open('followup', item)
+      if (item && item.business_id === biz?.id) { open('followup', item); go(route.split('?')[0]) }
     } else if (projectId) {
       const item = projects.find(p => p.id === projectId)
-      if (item && item.business_id === biz?.id) open('project', item)
+      if (item && item.business_id === biz?.id) { open('project', item); go(route.split('?')[0]) }
     }
   }, [route, slug, tasks, followUps, projects, open])
 
