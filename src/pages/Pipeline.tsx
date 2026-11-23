@@ -102,7 +102,7 @@ export function Pipeline() {
     const rows = parseCsv(await file.text()); if (rows.length < 2) return toast('That file has no rows.', 'error')
     const head = rows[0].map(h => h.trim().toLowerCase()); const col = (...k: string[]) => head.findIndex(h => k.some(x => h === x))
     const contains = (...k: string[]) => head.findIndex(h => k.some(x => h.includes(x)))
-    const ci = { name: (() => { const i = contains('agency', 'business', 'company'); return i >= 0 ? i : col('name') })(), site: contains('website', 'url', 'site'), contact: contains('email', 'contact'), person: contains('person'), phone: contains('phone'), country: contains('country'), source: contains('source'), notes: contains('note') }
+    const ci = { name: (() => { const i = contains('agency', 'business', 'company'); return i >= 0 ? i : col('name') })(), site: contains('website', 'url', 'site'), contact: (() => { const i = col('email', 'email address', 'e-mail'); return i >= 0 ? i : contains('email') })(), person: (() => { const i = col('contact name', 'person name', 'full name', 'contact'); return i >= 0 ? i : contains('person') })(), phone: contains('phone'), country: contains('country'), source: contains('source'), notes: contains('note') }
     if (ci.name < 0 && ci.contact < 0) return toast('Could not find an Agency or Email column in the first row.', 'error')
     const seen = [...prospects]; const out: Record<string, unknown>[] = []; let skipped = 0
     for (const r of rows.slice(1)) {
