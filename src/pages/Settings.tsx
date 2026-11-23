@@ -118,7 +118,7 @@ export function Settings({ scope }: { scope?: string } = {}) {
   )
 }
 
-async function resizeAvatar(file: File): Promise<string> {
+async function resizeAvatar(file: File): Promise<Blob> {
   const bitmap = await createImageBitmap(file)
   const max = 320
   const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height))
@@ -129,7 +129,7 @@ async function resizeAvatar(file: File): Promise<string> {
   if (!ctx) throw new Error('Could not prepare image')
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   bitmap.close()
-  return canvas.toDataURL('image/jpeg', 0.82)
+  return await new Promise<Blob>((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Could not prepare image')), 'image/jpeg', 0.82))
 }
 
 function AdminDashboard() {
@@ -148,8 +148,12 @@ function AdminDashboard() {
     if (!file.type.startsWith('image/')) return
     setUploading(userId)
     try {
-      const src = await resizeAvatar(file)
-      await updateProfile(userId, { avatar_url: src })
+      const blob = await resizeAvatar(file)
+      const path = `partners/${userId}.jpg`
+      const { error } = await supabase.storage.from('avatars').upload(path, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' })
+      if (error) throw new Error(error.message)
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+      await updateProfile(userId, { avatar_url: data.publicUrl })
     } finally {
       setUploading(null)
     }
