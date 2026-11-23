@@ -156,8 +156,8 @@ function AdminDashboard() {
   }
   const unlock = async () => {
     setUnlockError('')
-    sessionStorage.setItem('yoge_skip_login_redirect', '1')
     if (!password.trim()) return setUnlockError('Enter your admin password.')
+    sessionStorage.setItem('yoge_skip_login_redirect', '1')
     setUnlocking(true)
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     setUnlocking(false)
