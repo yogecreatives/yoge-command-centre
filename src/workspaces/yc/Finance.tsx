@@ -43,7 +43,7 @@ export function YcFinance({ bizId, slug = 'yogecreatives' }: { bizId: string; sl
   const P = projects.filter(p => p.business_id === bizId)
   const years = [...new Set([...P.map(p => (p.start_date || '').slice(0, 4)), String(new Date().getFullYear())].filter(Boolean))].sort().reverse()
   const [year, setYear] = useState(years[0])
-  const yp = P.filter(p => (p.start_date || '').startsWith(year))
+  const yp = P.filter(p => (p.start_date || '').startsWith(year) && p.status !== 'dropped')
   const received = yp.reduce((a, p) => a + Number(p.paid_amount), 0)
   const I = income.filter(i => i.entry_date.startsWith(year) && (!i.business_id || i.business_id === bizId)).sort((a, b) => b.entry_date.localeCompare(a.entry_date))
   const partnerCommission = I.filter(i => i.status === 'received').reduce((a, i) => a + Number(i.amount), 0), expect = I.filter(i => i.status === 'expected').reduce((a, i) => a + Number(i.amount), 0)
