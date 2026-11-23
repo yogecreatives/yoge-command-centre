@@ -8,7 +8,7 @@ import { Icon } from '../ui/Icon'
 import { fmtDate, todayISO } from '../lib/dates'
 import { Income } from '../lib/types'
 
-const f = (n: number) => Math.round(n).toLocaleString()
+const f = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2 })
 
 export function IncomeForm({ item, bizId, onClose }: { item?: Income; bizId?: string; onClose: () => void }) {
   const { create, update, remove, bizById, businesses } = useData(); const toast = useToast()
