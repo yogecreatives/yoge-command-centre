@@ -16,6 +16,7 @@ const byFit = (a: Prospect, b: Prospect) => b.fit - a.fit || a.created_at.locale
 
 function ActionRow({ p }: { p: Prospect }) {
   const { settings } = useData()
+  const sending = useRef(false)
   const open = useEditor()
   const { markSent } = usePipelineActions()
   const step = NEXT_STEP[p.stage]
@@ -32,7 +33,7 @@ function ActionRow({ p }: { p: Prospect }) {
       </div>
       <div className="act">
         {mail ? <a className="mini" href={mail}>Open email</a> : <button className="mini" disabled>No email</button>}
-        <button className="mini go" onClick={() => markSent(p)}>Sent</button>
+        <button className="mini go" disabled={sending.current} onClick={async () => { if (sending.current) return; sending.current = true; try { await markSent(p) } finally { sending.current = false } }}>Sent</button>
         <button className="mini rep" onClick={() => open('replied', p)}>Replied</button>
       </div>
     </div>
@@ -68,7 +69,7 @@ export function Pipeline() {
   const limit = settings?.daily_new_limit ?? 10
 
   const sentToday = activities.filter(a => a.kind === 'email_sent' && iso(new Date(a.created_at)) === today).length
-  const due = prospects.filter(p => WAITING.includes(p.stage) && p.next_action_date && p.next_action_date <= today).sort((a, b) => (a.next_action_date! < b.next_action_date! ? -1 : 1) || b.fit - a.fit)
+  const due = prospects.filter(p => WAITING.includes(p.stage) && p.next_action_date && p.next_action_date <= today).sort((a, b) => a.next_action_date!.localeCompare(b.next_action_date!) || b.fit - a.fit)
   const snoozed = prospects.filter(p => p.stage === 'not_now' && p.snooze_until && p.snooze_until <= today)
   const fresh = prospects.filter(p => p.stage === 'prospect' && p.email).sort(byFit)
   const quota = Math.max(limit - sentToday - due.length, 0) + extra
@@ -99,8 +100,9 @@ export function Pipeline() {
 
   const importCsv = async (file: File) => {
     const rows = parseCsv(await file.text()); if (rows.length < 2) return toast('That file has no rows.', 'error')
-    const head = rows[0].map(h => h.trim().toLowerCase()); const col = (...k: string[]) => head.findIndex(h => k.some(x => h.includes(x)))
-    const ci = { name: col('agency', 'business', 'company', 'name'), site: col('website', 'url', 'site'), contact: col('contact', 'email'), person: col('person'), phone: col('phone'), country: col('country'), source: col('source'), notes: col('note') }
+    const head = rows[0].map(h => h.trim().toLowerCase()); const col = (...k: string[]) => head.findIndex(h => k.some(x => h === x))
+    const contains = (...k: string[]) => head.findIndex(h => k.some(x => h.includes(x)))
+    const ci = { name: (() => { const i = contains('agency', 'business', 'company'); return i >= 0 ? i : col('name') })(), site: contains('website', 'url', 'site'), contact: contains('email', 'contact'), person: contains('person'), phone: contains('phone'), country: contains('country'), source: contains('source'), notes: contains('note') }
     if (ci.name < 0 && ci.contact < 0) return toast('Could not find an Agency or Email column in the first row.', 'error')
     const seen = [...prospects]; const out: Record<string, unknown>[] = []; let skipped = 0
     for (const r of rows.slice(1)) {
