@@ -24,7 +24,7 @@ export function YcPipeline({ bizId }: { bizId: string }) {
   const list = useMemo(() => {
     const t = q.trim().toLowerCase()
     const l = prospects.filter(p => (stage === 'all' || p.stage === stage) && (!t || `${p.agency_name} ${p.email ?? ''} ${p.contact_name ?? ''} ${p.city ?? ''} ${p.country ?? ''} ${p.category ?? ''} ${p.source ?? ''}`.toLowerCase().includes(t)))
-    if (sort === 'follow') l.sort((a, b) => (a.next_action_date || '9999').localeCompare(b.next_action_date || '9999'))
+    if (sort === 'follow') l.sort((a, b) => (a.next_action_date || '9999').localeCompare(b.next_action_date || '9999') || b.fit - a.fit)
     if (sort === 'recent') l.sort((a, b) => b.created_at.localeCompare(a.created_at))
     if (sort === 'name') l.sort((a, b) => a.agency_name.localeCompare(b.agency_name))
     return l
@@ -58,7 +58,7 @@ export function YcPipeline({ bizId }: { bizId: string }) {
   const importCsv = async (file: File) => {
     const rows = parseCsv(await file.text()); if (rows.length < 2) return toast('That file has no rows.', 'error')
     const head = rows[0].map(h => h.trim().toLowerCase()); const col = (...k: string[]) => head.findIndex(h => k.some(x => h === x)); const contains = (...k: string[]) => head.findIndex(h => k.some(x => h.includes(x)))
-    const ci = { name: (() => { const i = contains('business', 'company'); return i >= 0 ? i : col('name') })(), site: contains('website', 'url'), email: contains('email'), person: contains('contact', 'person'), phone: contains('phone'), country: contains('country'), city: contains('city', 'location'), cat: contains('categor'), src: contains('source'), notes: contains('note') }
+    const ci = { name: (() => { const i = contains('business', 'company'); return i >= 0 ? i : col('name') })(), site: contains('website', 'url'), email: (() => { const i = col('email', 'email address', 'e-mail'); return i >= 0 ? i : contains('email') })(), person: (() => { const i = col('contact name', 'person name', 'full name', 'contact'); return i >= 0 ? i : contains('person') })(), phone: contains('phone'), country: contains('country'), city: contains('city', 'location'), cat: contains('categor'), src: contains('source'), notes: contains('note') }
     if (ci.name < 0) return toast('Add a “Business name” column in the first row.', 'error')
     const seen = [...prospects]; const out: Record<string, unknown>[] = []; let skipped = 0
     for (const r of rows.slice(1)) {
