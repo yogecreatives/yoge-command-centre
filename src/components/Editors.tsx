@@ -110,7 +110,7 @@ function TaskForm({ item, defaults, onClose }: { item?: Task; defaults?: any; on
   const [err, setErr] = useState(''); const [saving, setSaving] = useState(false)
   const set = (k: string, v: any) => setF(s => ({ ...s, [k]: v }))
   const slug = bizById(f.business_id)?.slug ?? ''
-  const projOpts = projects.filter(p => p.business_id === f.business_id && p.status !== 'completed')
+  const projOpts = projects.filter(p => p.business_id === f.business_id && (p.status !== 'completed' && p.status !== 'dropped' || p.id === f.project_id))
   const save = async () => {
     setErr('')
     if (!f.title.trim()) return setErr('Give the task a name.')
