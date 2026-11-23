@@ -29,7 +29,7 @@ export function summarize(tasks: Task[], followUps: FollowUp[], projects: Projec
     overdue: openTasks.filter(t => t.due_date && t.due_date < today).length,
     upcoming:
       openTasks.filter(t => t.due_date && t.due_date >= today && t.due_date <= horizon).length +
-      projects.filter(p => p.status !== 'completed' && p.due_date && p.due_date >= today && p.due_date <= horizon).length,
+      projects.filter(p => p.status !== 'completed' && p.status !== 'dropped' && p.due_date && p.due_date >= today && p.due_date <= horizon).length,
   }
 }
 
