@@ -66,7 +66,7 @@ begin
   from public.projects p
   join public.user_settings s on s.user_id = p.user_id
   join public.businesses b on b.id = p.business_id
-  where s.remind_projects and p.status <> 'completed' and p.due_date is not null
+  where s.remind_projects and p.status <> 'completed' and p.status <> 'dropped' and p.due_date is not null
     and p.due_date >= (now() at time zone s.timezone)::date
     and p.due_date <= (now() at time zone s.timezone)::date + greatest(s.remind_days_before, 3)
   on conflict (user_id, kind, ref_id, ref_date) do nothing;
