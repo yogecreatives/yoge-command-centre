@@ -15,11 +15,11 @@ export function PlannerWorkspace() {
 
   const selectTab = (id: string) => {
     setTab(id)
-    frame.current?.contentWindow?.postMessage({ type: 'planner-view', view: id }, '*')
+    frame.current?.contentWindow?.postMessage({ type: 'planner-view', view: id }, window.location.origin)
   }
 
   const syncFrame = () => {
-    frame.current?.contentWindow?.postMessage({ type: 'planner-view', view: tab }, '*')
+    frame.current?.contentWindow?.postMessage({ type: 'planner-view', view: tab }, window.location.origin)
   }
 
   return (
