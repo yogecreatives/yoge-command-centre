@@ -18,7 +18,7 @@ export function YcPipeline({ bizId }: { bizId: string }) {
   const [q, setQ] = useState(''); const [stage, setStage] = useState<'all' | Stage>('all'); const [sort, setSort] = useState<'follow' | 'recent' | 'name'>('follow')
   const fileRef = useRef<HTMLInputElement>(null); const drag = useRef<string | null>(null)
 
-  const due = prospects.filter(p => leadDue(p, today)).sort((a, b) => (a.next_action_date! < b.next_action_date! ? -1 : 1))
+  const due = prospects.filter(p => leadDue(p, today)).sort((a, b) => a.next_action_date!.localeCompare(b.next_action_date!) || b.fit - a.fit)
   const fresh = prospects.filter(p => p.stage === 'new' && !leadDue(p, today))
   const lastContact = (p: Prospect) => p.last_contacted_at
   const list = useMemo(() => {
@@ -57,8 +57,8 @@ export function YcPipeline({ bizId }: { bizId: string }) {
 
   const importCsv = async (file: File) => {
     const rows = parseCsv(await file.text()); if (rows.length < 2) return toast('That file has no rows.', 'error')
-    const head = rows[0].map(h => h.trim().toLowerCase()); const col = (...k: string[]) => head.findIndex(h => k.some(x => h.includes(x)))
-    const ci = { name: col('business', 'company', 'name'), site: col('website', 'url'), email: col('email'), person: col('contact', 'person'), phone: col('phone'), country: col('country'), city: col('city', 'location'), cat: col('categor'), src: col('source'), notes: col('note') }
+    const head = rows[0].map(h => h.trim().toLowerCase()); const col = (...k: string[]) => head.findIndex(h => k.some(x => h === x)); const contains = (...k: string[]) => head.findIndex(h => k.some(x => h.includes(x)))
+    const ci = { name: (() => { const i = contains('business', 'company'); return i >= 0 ? i : col('name') })(), site: contains('website', 'url'), email: contains('email'), person: contains('contact', 'person'), phone: contains('phone'), country: contains('country'), city: contains('city', 'location'), cat: contains('categor'), src: contains('source'), notes: contains('note') }
     if (ci.name < 0) return toast('Add a “Business name” column in the first row.', 'error')
     const seen = [...prospects]; const out: Record<string, unknown>[] = []; let skipped = 0
     for (const r of rows.slice(1)) {
