@@ -20,7 +20,8 @@ export function followUpState(f: FollowUp, today: string): 'overdue' | 'due' | '
 // One definition of every dashboard number, used by the overview and each business workspace.
 export function summarize(tasks: Task[], followUps: FollowUp[], projects: Project[], today: string) {
   const horizon = addDays(today, 7)
-  const openTasks = tasks.filter(t => t.status !== 'completed')
+  const droppedProjectIds = new Set(projects.filter(p => p.status === 'dropped').map(p => p.id))
+  const openTasks = tasks.filter(t => t.status !== 'completed' && (!t.project_id || !droppedProjectIds.has(t.project_id)))
   return {
     pending: tasks.filter(t => t.status === 'pending').length,
     inProgress: tasks.filter(t => t.status === 'in_progress').length,
