@@ -14,7 +14,8 @@ begin
   from public.tasks t
   join public.user_settings s on s.user_id = t.user_id
   join public.businesses b on b.id = t.business_id
-  where s.remind_tasks and t.status <> 'completed' and t.due_date is not null
+  left join public.projects p on p.id = t.project_id
+  where s.remind_tasks and t.status <> 'completed' and (p.id is null or p.status <> 'dropped') and t.due_date is not null
     and t.due_date >= (now() at time zone s.timezone)::date
     and t.due_date <= (now() at time zone s.timezone)::date + s.remind_days_before
   on conflict (user_id, kind, ref_id, ref_date) do nothing;
@@ -27,7 +28,8 @@ begin
   from public.tasks t
   join public.user_settings s on s.user_id = t.user_id
   join public.businesses b on b.id = t.business_id
-  where s.remind_overdue and t.status <> 'completed' and t.due_date is not null
+  left join public.projects p on p.id = t.project_id
+  where s.remind_overdue and t.status <> 'completed' and (p.id is null or p.status <> 'dropped') and t.due_date is not null
     and t.due_date < (now() at time zone s.timezone)::date
   on conflict (user_id, kind, ref_id, ref_date) do nothing;
   get diagnostics c = row_count; n := n + c;
