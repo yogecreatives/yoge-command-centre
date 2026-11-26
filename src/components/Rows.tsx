@@ -34,6 +34,8 @@ export function TaskRow({ t, showBusiness = true }: { t: Task; showBusiness?: bo
   const st = taskState(t, today)
   const done = t.status === 'completed'
   const project = t.project_id ? projects.find(p => p.id === t.project_id) : undefined
+  const phone = t.phone || project?.client_phone
+  const email = project?.client_email
   return (
     <div className={`row ${done ? 'done' : ''}`}>
       <button className={`check ${done ? 'on' : ''} p-${t.priority}`} aria-label={done ? 'Reopen task' : 'Mark task done'} onClick={() => toggleTask(t)}>{done && <Icon name="check" size={14} />}</button>
@@ -42,10 +44,10 @@ export function TaskRow({ t, showBusiness = true }: { t: Task; showBusiness?: bo
         <div className="row-sub">
           {[showBusiness && bizById(t.business_id)?.name, t.category, t.status === 'in_progress' && 'In progress', t.priority !== 'normal' && (t.priority === 'urgent' ? 'Urgent' : 'High')].filter(Boolean).join(' · ') || 'Task'}
         </div>
-        {project && (project.client_phone || project.client_email) && (
+        {(phone || email) && (
           <div className="contact-line">
-            <span>{project.client_phone || project.client_email}</span>
-            <ContactActions email={project.client_email} phone={project.client_phone} />
+            <span>{phone || email}</span>
+            <ContactActions email={email} phone={phone} />
           </div>
         )}
       </button>
