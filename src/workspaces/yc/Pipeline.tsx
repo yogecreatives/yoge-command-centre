@@ -52,7 +52,8 @@ export function YcPipeline({ bizId }: { bizId: string }) {
     <button className="row" onClick={() => open('lead', p)}>
       <div className="row-main"><div className="row-title">{p.agency_name}</div>
         <div className="row-sub">{[p.contact_name, p.email || p.phone, p.city || p.country, p.source].filter(Boolean).join(' · ') || 'No contact details yet'}</div>
-        <div className="row-sub">{[lastContact(p) ? `Last contact ${fmtStamp(lastContact(p))}` : 'Not contacted', p.next_action && `Next: ${p.next_action}`, p.next_action_date && `Follow-up ${fmtDate(p.next_action_date)}`].filter(Boolean).join(' · ')}</div></div>
+        <div className="row-sub">{[lastContact(p) ? `Last contact ${fmtStamp(lastContact(p))}` : 'Not contacted', p.next_action && `Next: ${p.next_action}`, p.next_action_date && `Follow-up ${fmtDate(p.next_action_date)}`].filter(Boolean).join(' · ')}</div>
+        {(p.phone || p.email) && <div className="row-sub contact-line"><span>{p.phone || p.email}</span><ContactActions email={p.email} phone={p.phone} /></div>}</div>
       <span className={`chip ${p.stage === 'won' ? 'lime' : leadDue(p, today) ? 'red' : ''}`}>{STAGE[p.stage]}</span>
     </button>
   )
