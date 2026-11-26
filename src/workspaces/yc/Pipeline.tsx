@@ -42,8 +42,8 @@ export function YcPipeline({ bizId }: { bizId: string }) {
     return <div className="row col">
       <div className="rt"><button className="row-main" onClick={() => open('lead', p)}>
         <div className="row-title">{p.agency_name}</div>
-        <div className="row-sub">{[p.next_action || (p.stage === 'new' ? 'First contact' : 'Follow up'), p.contact_name, p.city || p.country].filter(Boolean).join(' · ')}</div>
-        {(p.phone || p.email) && <div className="row-sub contact-line">{p.phone || p.email}<ContactActions email={p.email} phone={p.phone} /></div></button>
+        <div className="row-sub">{[p.next_action || (p.stage === 'new' ? 'First contact' : 'Follow up'), p.contact_name, p.city || p.country].filter(Boolean).join(' · ')}</div></button>
+        {(p.phone || p.email) && <span className="contact-line">{p.phone || p.email}<ContactActions email={p.email} phone={p.phone} /></span>
         <span className={`chip ${p.next_action_date && p.next_action_date < today ? 'red' : p.next_action_date ? 'amber' : ''}`}>{p.next_action_date ? dueLabel(p.next_action_date, today) : STAGE[p.stage]}</span></div>
       <div className="act"><button className="mini" disabled={sending.current} onClick={async () => { if (sending.current) return; sending.current = true; try { await logOut(p, 'email_sent') } finally { sending.current = false } }}>Email sent</button><button className="mini" disabled={sending.current} onClick={async () => { if (sending.current) return; sending.current = true; try { await logOut(p, 'dm_sent') } finally { sending.current = false } }}>DM sent</button><button className="mini rep" onClick={() => replied(p)}>Replied</button></div>
     </div>
