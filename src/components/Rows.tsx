@@ -7,6 +7,16 @@ import { followUpState, taskState } from '../lib/logic'
 import { PROJECT_STATUS } from '../lib/labels'
 import { FollowUp, Idea, Project, Task } from '../lib/types'
 
+export function ContactActions({ email, phone }: { email?: string | null; phone?: string | null }) {
+  const cleanPhone = phone?.replace(/[^\\d+]/g, '')
+  const whatsapp = cleanPhone ? `https://wa.me/${cleanPhone.replace(/^\\+/, '')}` : null
+  return <span className="contact-actions" onClick={e => e.stopPropagation()}>
+    {whatsapp && <a className="contact-icon" href={whatsapp} target="_blank" rel="noreferrer" aria-label="WhatsApp"><Icon name="whatsapp" size={14} /></a>}
+    {cleanPhone && <a className="contact-icon" href={`tel:${cleanPhone}`} aria-label="Call"><Icon name="phone" size={14} /></a>}
+    {email && <a className="contact-icon" href={`mailto:${email}`} aria-label="Email"><Icon name="mail" size={14} /></a>}
+  </span>
+}
+
 export function Group({ title, items, empty, action }: { title?: string; items: ReactNode[]; empty?: string; action?: ReactNode }) {
   if (!items.length && !empty) return null
   return (
@@ -18,11 +28,12 @@ export function Group({ title, items, empty, action }: { title?: string; items: 
 }
 
 export function TaskRow({ t, showBusiness = true }: { t: Task; showBusiness?: boolean }) {
-  const { toggleTask, bizById } = useData()
+  const { toggleTask, bizById, projects } = useData()
   const open = useEditor()
   const today = todayISO()
   const st = taskState(t, today)
   const done = t.status === 'completed'
+  const project = t.project_id ? projects.find(p => p.id === t.project_id) : undefined
   return (
     <div className={`row ${done ? 'done' : ''}`}>
       <button className={`check ${done ? 'on' : ''} p-${t.priority}`} aria-label={done ? 'Reopen task' : 'Mark task done'} onClick={() => toggleTask(t)}>{done && <Icon name="check" size={14} />}</button>
