@@ -14,7 +14,7 @@ export interface WorkspaceMembership { id: string; business_id: string; user_id:
 export interface Task extends Base {
   business_id: string; project_id: string | null; title: string; category: string | null
   task_type: TaskType; priority: Priority; status: Status; due_date: string | null
-  notes: string | null; completed_at: string | null
+  notes: string | null; phone: string | null; completed_at: string | null
 }
 export interface FollowUp extends Base {
   business_id: string; person_name: string; company: string | null; email: string | null; phone: string | null
