@@ -27,9 +27,6 @@ export function Tasks() {
     let l = tasks.filter(t => {
       if (scope === 'done') { if (t.status !== 'completed') return false }
       else if (t.status === 'completed') return false
-      if (scope === 'today' && t.due_date !== today) return false
-      if (scope === 'overdue' && !(t.due_date && t.due_date < today)) return false
-      if (scope === 'upcoming' && !(t.due_date && t.due_date > today)) return false
       if (biz !== 'all' && t.business_id !== biz) return false
       if (status !== 'all' && t.status !== status) return false
       if (prio !== 'all' && t.priority !== prio) return false
