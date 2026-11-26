@@ -8,7 +8,7 @@ import { PROJECT_STATUS } from '../lib/labels'
 import { FollowUp, Idea, Project, Task } from '../lib/types'
 
 export function ContactActions({ email, phone }: { email?: string | null; phone?: string | null }) {
-  const cleanPhone = phone?.replace(/[^\\d+]/g, '')
+  const cleanPhone = phone?.replace(/[^\d+]/g, '')
   const whatsapp = cleanPhone ? `https://wa.me/${cleanPhone.replace(/^\\+/, '')}` : null
   return <span className="contact-actions" onClick={e => e.stopPropagation()}>
     {whatsapp && <a className="contact-icon" href={whatsapp} target="_blank" rel="noreferrer" aria-label="WhatsApp"><Icon name="whatsapp" size={14} /></a>}
@@ -42,6 +42,12 @@ export function TaskRow({ t, showBusiness = true }: { t: Task; showBusiness?: bo
         <div className="row-sub">
           {[showBusiness && bizById(t.business_id)?.name, t.category, t.status === 'in_progress' && 'In progress', t.priority !== 'normal' && (t.priority === 'urgent' ? 'Urgent' : 'High')].filter(Boolean).join(' · ') || 'Task'}
         </div>
+        {project && (project.client_phone || project.client_email) && (
+          <div className="contact-line">
+            <span>{project.client_phone || project.client_email}</span>
+            <ContactActions email={project.client_email} phone={project.client_phone} />
+          </div>
+        )}
       </button>
       {done
         ? <span className="chip">{fmtStamp(t.completed_at)}</span>
