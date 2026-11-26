@@ -105,7 +105,7 @@ function TaskForm({ item, defaults, onClose }: { item?: Task; defaults?: any; on
     title: item?.title ?? defaults?.title ?? '', business_id: item?.business_id ?? defaults?.business_id ?? businesses[0]?.id ?? '',
     category: item?.category ?? '', task_type: (item?.task_type ?? defaults?.task_type ?? 'general') as TaskType,
     priority: (item?.priority ?? 'normal') as Priority, status: (item?.status ?? 'pending') as Status,
-    due_date: item?.due_date ?? defaults?.due_date ?? '', notes: item?.notes ?? defaults?.notes ?? '', project_id: item?.project_id ?? defaults?.project_id ?? '',
+    due_date: item?.due_date ?? defaults?.due_date ?? '', phone: item?.phone ?? defaults?.phone ?? '', notes: item?.notes ?? defaults?.notes ?? '', project_id: item?.project_id ?? defaults?.project_id ?? '',
   })
   const [err, setErr] = useState(''); const [saving, setSaving] = useState(false)
   const set = (k: string, v: any) => setF(s => ({ ...s, [k]: v }))
@@ -119,7 +119,7 @@ function TaskForm({ item, defaults, onClose }: { item?: Task; defaults?: any; on
     setSaving(true)
     const row = {
       title: f.title.trim(), business_id: f.business_id, category: nz(f.category), task_type: f.task_type, priority: f.priority, status: f.status,
-      due_date: f.due_date || null, notes: nz(f.notes), project_id: f.project_id || null,
+      due_date: f.due_date || null, phone: nz(f.phone), notes: nz(f.notes), project_id: f.project_id || null,
       completed_at: f.status === 'completed' ? (item?.completed_at ?? new Date().toISOString()) : null,
     }
     const res = item ? await update('tasks', item.id, row) : await create('tasks', row)
@@ -147,6 +147,7 @@ function TaskForm({ item, defaults, onClose }: { item?: Task; defaults?: any; on
         <datalist id="cats">{(CATEGORIES[slug] ?? []).map(c => <option key={c} value={c} />)}</datalist>
       </F>
       {projOpts.length > 0 && <F label="Project"><select className="input" value={f.project_id} onChange={e => set('project_id', e.target.value)}><option value="">None</option>{projOpts.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></F>}
+      <F label="Phone"><input className="input" type="tel" inputMode="tel" value={f.phone} onChange={e => set('phone', e.target.value)} /></F>
       <F label="Notes"><textarea className="input" rows={3} value={f.notes} onChange={e => set('notes', e.target.value)} /></F>
       {item && <p className="meta">Created {fmtStamp(item.created_at)} · Updated {fmtStamp(item.updated_at)}{item.completed_at ? ` · Completed ${fmtStamp(item.completed_at)}` : ''}</p>}
       {err && <p className="err">{err}</p>}
