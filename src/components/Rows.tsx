@@ -50,7 +50,7 @@ export function TaskRow({ t, showBusiness = true }: { t: Task; showBusiness?: bo
             <ContactActions email={email} phone={phone} />
           </div>
         )}
-      </button>
+      </div>
       {done
         ? <span className="chip">{fmtStamp(t.completed_at)}</span>
         : t.due_date && <span className={`chip ${st === 'overdue' ? 'red' : st === 'today' ? 'amber' : ''}`}>{dueLabel(t.due_date, today)}</span>}
