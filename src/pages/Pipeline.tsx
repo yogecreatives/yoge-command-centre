@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useData } from '../lib/data'
 import { useEditor } from '../components/editorContext'
-import { Group } from '../components/Rows'
+import { Group, ContactActions } from '../components/Rows'
 import { Segmented } from '../ui/Sheet'
 import { Icon } from '../ui/Icon'
 import { useToast } from '../ui/toast'
@@ -28,6 +28,7 @@ function ActionRow({ p }: { p: Prospect }) {
         <button className="row-main" onClick={() => open('prospect', p)}>
           <div className="row-title">{p.agency_name}{p.country ? ` · ${p.country}` : ''}</div>
           <div className="row-sub">{step?.label}{p.stage !== 'prospect' && p.next_action_date ? ` · due ${dueLabel(p.next_action_date, today).toLowerCase()}` : ''}{p.source ? ` · ${p.source}` : ''}</div>
+          {(p.phone || p.email) && <div className="row-sub contact-line">{p.phone || p.email}<ContactActions email={p.email} phone={p.phone} /></div>}
         </button>
         <span className="stars">{stars(p.fit)}</span>
       </div>
@@ -47,6 +48,7 @@ function Plain({ p }: { p: Prospect }) {
     <button className="row" onClick={() => open('prospect', p)}>
       <div className="row-main"><div className="row-title">{p.agency_name}</div>
         <div className="row-sub">{[p.country, p.next_action_date && WAITING.includes(p.stage) ? `next ${fmtDate(p.next_action_date)}` : p.stage === 'not_now' && p.snooze_until ? `back ${fmtDate(p.snooze_until)}` : p.email ? '' : 'needs email'].filter(Boolean).join(' · ')}</div></div>
+      {(p.phone || p.email) && <span className="contact-line">{p.phone || p.email}<ContactActions email={p.email} phone={p.phone} /></span>}
       <span className="stars">{stars(p.fit)}</span>
       <span className={`chip ${due ? 'red' : ACTIVE.includes(p.stage) ? 'lime' : ''}`}>{STAGE[p.stage]}</span>
     </button>
