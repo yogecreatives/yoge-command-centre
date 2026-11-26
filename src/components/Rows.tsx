@@ -9,7 +9,7 @@ import { FollowUp, Idea, Project, Task } from '../lib/types'
 
 export function ContactActions({ email, phone }: { email?: string | null; phone?: string | null }) {
   const cleanPhone = phone?.replace(/[^\d+]/g, '')
-  const whatsapp = cleanPhone ? `https://wa.me/${cleanPhone.replace(/^\\+/, '')}` : null
+  const whatsapp = cleanPhone ? `https://wa.me/${cleanPhone.replace(/^\+/, '')}` : null
   return <span className="contact-actions" onClick={e => e.stopPropagation()}>
     {whatsapp && <a className="contact-icon" href={whatsapp} target="_blank" rel="noreferrer" aria-label="WhatsApp"><Icon name="whatsapp" size={14} /></a>}
     {cleanPhone && <a className="contact-icon" href={`tel:${cleanPhone}`} aria-label="Call"><Icon name="phone" size={14} /></a>}
@@ -39,7 +39,7 @@ export function TaskRow({ t, showBusiness = true }: { t: Task; showBusiness?: bo
   return (
     <div className={`row ${done ? 'done' : ''}`}>
       <button className={`check ${done ? 'on' : ''} p-${t.priority}`} aria-label={done ? 'Reopen task' : 'Mark task done'} onClick={() => toggleTask(t)}>{done && <Icon name="check" size={14} />}</button>
-      <button className="row-main" onClick={() => open('task', t)}>
+      <div className="row-main" role="button" tabIndex={0} onClick={() => open('task', t)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open('task', t) } }}>
         <div className="row-title">{t.title}</div>
         <div className="row-sub">
           {[showBusiness && bizById(t.business_id)?.name, t.category, t.status === 'in_progress' && 'In progress', t.priority !== 'normal' && (t.priority === 'urgent' ? 'Urgent' : 'High')].filter(Boolean).join(' · ') || 'Task'}
