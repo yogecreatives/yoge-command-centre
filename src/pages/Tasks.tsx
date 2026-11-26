@@ -8,7 +8,7 @@ import { addDays, todayISO } from '../lib/dates'
 import { byDue } from '../lib/logic'
 import { PRIORITY, STATUS, TASK_TYPE } from '../lib/labels'
 
-type Scope = 'open' | 'today' | 'overdue' | 'upcoming' | 'done'
+type Scope = 'open' | 'done'
 const prioRank: Record<string, number> = { urgent: 0, high: 1, normal: 2 }
 
 export function Tasks() {
@@ -45,9 +45,6 @@ export function Tasks() {
     return l
   }, [tasks, scope, search, biz, status, prio, type, due, sort, today])
 
-  const counts = {
-    overdue: tasks.filter(t => t.status !== 'completed' && t.due_date && t.due_date < today).length,
-  }
   const sel = (value: string, set: (v: string) => void, all: string, opts: [string, string][]) => (
     <select className="pill" value={value} onChange={e => set(e.target.value)}>
       <option value="all">{all}</option>{opts.map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -57,7 +54,7 @@ export function Tasks() {
     <>
       <header className="large"><h1>Tasks</h1><div className="toolbar"><button className="iconbtn" onClick={() => open('task')} aria-label="Add task"><Icon name="plus" /></button></div></header>
       <div className="search"><Icon name="search" size={18} /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search tasks" /></div>
-      <Segmented value={scope} onChange={setScope} options={[['open', 'Open'], ['today', 'Today'], ['overdue', counts.overdue ? `Overdue ${counts.overdue}` : 'Overdue'], ['upcoming', 'Upcoming'], ['done', 'Done']]} />
+      <Segmented value={scope} onChange={setScope} options={[['open', 'Ongoing'], ['done', 'Completed']]} />
       <div className="pills">
         {sel(biz, setBiz, 'All businesses', businesses.map(b => [b.id, b.name]))}
         {scope !== 'done' && sel(status, setStatus, 'Any status', [['pending', STATUS.pending], ['in_progress', STATUS.in_progress]])}
